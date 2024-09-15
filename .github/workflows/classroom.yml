@@ -1,0 +1,49 @@
+---
+name: GitHub Classroom Workflow
+
+on:
+  - push
+  - workflow_dispatch
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  checks: write
+  actions: read
+  contents: read
+
+jobs:
+  build:
+    name: Autograding
+    runs-on: self-hosted
+    if: github.actor != 'github-classroom[bot]'
+
+    steps:
+      # Checkout
+      - uses: actions/checkout@v4
+
+      # Setup Dependencies
+      - name: "Setup yq"
+        uses: dcarbone/install-yq-action@v1.1.1
+        with:
+          version: "v4.40.5"
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Install Poetry
+        uses: snok/install-poetry@v1
+      - run: poetry install --directory lab2
+
+      # Get Test Files
+
+      - name: Download all autograder scripts
+        run: |
+         curl --header "X-API-KEY:${{ secrets.AUTOGRADER_API_AUTH_KEY }}" -s ${{ vars.AUTOGRADER_API_URL }}/static/lab2/L2-1-maindeps.sh --output 1-maindeps.sh
+         curl --header "X-API-KEY:${{ secrets.AUTOGRADER_API_AUTH_KEY }}" -s ${{ vars.AUTOGRADER_API_URL }}/static/lab2/L2-2-devdeps.sh --output 2-devdeps.sh
+         curl --header "X-API-KEY:${{ secrets.AUTOGRADER_API_AUTH_KEY }}" -s ${{ vars.AUTOGRADER_API_URL }}/static/lab2/L2-3-application-requirements.sh --output 3-application-requirements.sh
+         curl --header "X-API-KEY:${{ secrets.AUTOGRADER_API_AUTH_KEY }}" -s ${{ vars.AUTOGRADER_API_URL }}/static/lab2/L2-4-docker-requirements.sh --output 4-docker-requirements.sh
+         curl --header "X-API-KEY:${{ secrets.AUTOGRADER_API_AUTH_KEY }}" -s ${{ vars.AUTOGRADER_API_URL }}/static/lab2/L2-test_autograder.py --output lab2/tests/test_autograder.py
+
+      - uses: education/autograding@v1
