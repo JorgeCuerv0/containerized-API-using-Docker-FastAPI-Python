@@ -1,0 +1,23 @@
+[tool.poetry]
+name = "lab2"
+version = "0.1.0"
+description = "Lab 2: Data Models and Inference"
+authors = ["Jorge Sandoval <sandoval@berkeley.edu>"]
+readme = "README.md"
+packages = [{ include = "src" }]
+
+[tool.poetry.dependencies]
+python = "^3.10"
+fastapi = "^0.95.2"
+scikit-learn = "1.5.2"
+joblib = "1.4.2"
+pydantic = "^1.10.7"
+uvicorn = "^0.22.0"
+
+[tool.poetry.dev-dependencies]
+pytest = "^7.3.1"
+pytest-cov = "^4.0.0"
+
+[build-system]
+requires = ["poetry-core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"
