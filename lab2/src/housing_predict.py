@@ -3,16 +3,16 @@ from pydantic import BaseModel, Field
 import joblib
 from datetime import datetime
 
-app = FastAPI()
+predict_app = FastAPI()
 
 # Health check endpoint
-@app.get("/health")
+@predict_app.get("/health")
 async def health_check():
     current_time = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
     return {"time": current_time}
 
 # Hello endpoint
-@app.get("/hello")
+@predict_app.get("/hello")
 async def get_name(name: str = None):
     if not name:  # This will check for both None and empty string
         raise HTTPException(status_code=400, detail="Name is required")
@@ -20,7 +20,7 @@ async def get_name(name: str = None):
 
 
 # Root endpoint
-@app.get("/")
+@predict_app.get("/")
 async def not_found():
     raise HTTPException(status_code=404, detail="Not Found")
 
@@ -43,7 +43,7 @@ class PredictionRequest(BaseModel):
 class PredictionResponse(BaseModel):
     prediction: float
 
-@app.post("/predict", response_model=PredictionResponse)
+@predict_app.post("/predict", response_model=PredictionResponse)
 def predict(request: PredictionRequest):
     # Load the trained model (model_pipeline.pkl)
     model = joblib.load("model_pipeline.pkl")
