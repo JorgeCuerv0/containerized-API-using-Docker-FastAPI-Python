@@ -1,12 +1,15 @@
 from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel, Field
+import joblib
+from datetime import datetime
 
 app = FastAPI()
 
 # Health check endpoint
 @app.get("/health")
 async def health_check():
-    return {"status": "healthy"}
+    current_time = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    return {"time": current_time}
 
 # Hello endpoint
 @app.get("/hello")
@@ -25,13 +28,13 @@ class PredictionRequest(BaseModel):
     longitude: float = Field(..., gt = -180, lt = 180)
     latitude: float = Field(..., gt = -90, lt = 90)
     
-    @validator("Longitude")
+    @validator("longitude")
     def validate_longitude(cls, value):
         if value < -180 or value > 180:
             raise ValueError("Longitude must be between -180 and 180")   
         return value
     
-    @validator("Latitude")
+    @validator("latitude")
     def validate_latitude(cls, value):
         if value < -90 or value > 90:
             raise ValueError("Latitude must be between -90 and 90") 
@@ -46,7 +49,7 @@ def predict(request: PredictionRequest):
     model = joblib.load("model_pipeline.pkl")
     
     # Prepare the data for prediction (extract longitude and latitude)
-    data = [[request.longitude, resquest.latitude]]
+    data = [[request.longitude, request.latitude]]
     
     #prediction
     prediction = model.predict(data)[0]
