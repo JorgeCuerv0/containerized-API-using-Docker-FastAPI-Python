@@ -3,25 +3,37 @@ FROM python:3.11-slim as builder
 
 WORKDIR /app
 
+# Install system dependencies required for building Python packages
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    build-essential \
+    libffi-dev \
+    curl \
+    && rm -rf /var/lib/apt/lists/*
+
+# Install Poetry
+RUN curl -sSL https://install.python-poetry.org | python3 -
+
 # Copy pyproject.toml and poetry.lock to install dependencies
 COPY pyproject.toml poetry.lock ./
 
-# Install Poetry and project dependencies (excluding dev)
-RUN pip install poetry && poetry install --no-dev
+# Install project dependencies without dev dependencies
+RUN poetry install --no-dev
 
 # Copy the rest of the application code
 COPY . .
 
 # Stage 2: Final Image
-FROM python:3.11-slim
+FROM python:3.11-alpine
 
 WORKDIR /app
 
-# Copy only necessary files from the builder image
-COPY --from=builder /app /app
-
 # Install runtime dependencies only
-RUN pip install --no-cache-dir fastapi scikit-learn joblib
+RUN apk add --no-cache libffi && \
+    apk add --no-cache --virtual .build-deps gcc musl-dev && \
+    apk del .build-deps
+
+# Copy necessary files from the builder image
+COPY --from=builder /app /app
 
 # Expose the port FastAPI will run on
 EXPOSE 8000
