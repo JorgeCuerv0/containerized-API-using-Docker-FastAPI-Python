@@ -1,5 +1,5 @@
 # Use an official lightweight Python image
-FROM python:3.11-slim
+FROM python:3.11-slim as builder
 
 # Set the working directory
 WORKDIR /app
@@ -8,10 +8,20 @@ WORKDIR /app
 COPY pyproject.toml poetry.lock ./
 
 # Install Poetry and project dependencies
-RUN pip install poetry && poetry install
+RUN pip install poetry && poetry install --no-dev
 
 # Copy the rest of the application code
 COPY . .
+
+FROM python:3.11-slim
+
+WORKDIR /app
+
+COPY --from=builder /app /app/
+
+# Install runtime dependencies
+RUN pip install --no-cache-dir fastapi scikit-learn joblib
+
 
 # Expose the port FastAPI will run on
 EXPOSE 8000
