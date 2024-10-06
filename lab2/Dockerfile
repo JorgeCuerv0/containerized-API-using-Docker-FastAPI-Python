@@ -24,8 +24,8 @@ RUN poetry install --no-dev
 # Copy all files from current context
 COPY . .
 
-# Install Uvicorn (directly in the Dockerfile, not in pyproject.toml)
-RUN pip install uvicorn
+# Install Uvicorn explicitly in the Docker container
+RUN pip install uvicorn  # This ensures Uvicorn is installed in the final image
 
 # Final stage (build from here to reduce image size)
 FROM python:3.11-slim
