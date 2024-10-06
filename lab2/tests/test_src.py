@@ -14,6 +14,9 @@ def test_health():
     response = client.get("/lab/health")
     # Assert that the status code is 200 (OK), meaning the endpoint is functioning correctly
     assert response.status_code == 200
+    assert "time" in response.json(), "Response does not contain 'time' field"
+    assert isinstance(response.json()["time"], str), "'time' field is not of type string"
+
 
 # This test function checks the /predict endpoint with valid input data.
 def test_predict_valid_basic():
@@ -33,6 +36,8 @@ def test_predict_valid_basic():
     assert response.status_code == 200, "API did not respond with a 200 code /lab/predict"
     # Assert that the response contains a 'prediction' field, which should hold the prediction result
     assert "prediction" in response.json(), "Response does not contain 'prediction' field"
+    assert isinstance(response.json()["prediction"], float), "'prediction' field is not of type float"
+
     
 # This test function checks the /predict endpoint with invalid input data.
 def test_predict_invalid_input():
@@ -70,6 +75,8 @@ def test_predict_edge_case():
     
     assert response.status_code == 200
     assert "prediction" in response.json()
+    assert isinstance(response.json()["prediction"], float), "'prediction' field is not of type float"
+
 
 # This test function checks the /predict endpoint with missing field.
 def test_predict_missing_feature():
@@ -136,6 +143,9 @@ def test_predict_order():
     })
     
     assert response.status_code == 200
+    assert "prediction" in response.json(), "Response does not contain 'prediction' field"
+    assert isinstance(response.json()["prediction"], float), "'prediction' field is not of type float"
+
     
 def test_predict_missing_and_extra_feature():
     response = client.post("/lab/predict", json={

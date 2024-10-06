@@ -21,7 +21,7 @@ WORKDIR /app
 COPY --from=builder /app /app
 
 # Install runtime dependencies
-RUN pip install --no-cache-dir fastapi scikit-learn joblib
+RUN pip install --no-cache-dir fastapi scikit-learn joblib uvicorn
 
 # Expose the port FastAPI will run on
 EXPOSE 8000
