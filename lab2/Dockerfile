@@ -1,4 +1,4 @@
-# Use Python 3.11-slim image as a base
+# Use Python 3.11-slim as the base image
 FROM python:3.11-slim AS builder
 
 # Set the working directory
@@ -24,9 +24,6 @@ RUN poetry install --no-dev
 # Copy all files from current context
 COPY . .
 
-# Install Uvicorn explicitly in the Docker container
-RUN pip install uvicorn  # This ensures Uvicorn is installed in the final image
-
 # Final stage (build from here to reduce image size)
 FROM python:3.11-slim
 
@@ -35,6 +32,9 @@ WORKDIR /app
 
 # Copy necessary files from the builder stage
 COPY --from=builder /app /app
+
+# Install Uvicorn explicitly in the final image
+RUN pip install uvicorn
 
 # Expose the port FastAPI will run on
 EXPOSE 8000
