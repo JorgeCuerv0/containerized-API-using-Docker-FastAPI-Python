@@ -19,7 +19,6 @@ def test_health():
 
 # This test function checks the /lab/predict endpoint with valid input data.
 def test_predict_valid_basic():
-    # Send a POST request to the /lab/predict endpoint with valid longitude and latitude
     response = client.post("/lab/predict", json={
         "longitude": -122.1,
         "latitude": 37.7,
@@ -30,11 +29,9 @@ def test_predict_valid_basic():
         "population": 300.0,
         "AveOccup": 2.5
     })
-        
-    assert response.status_code == 200, "API did not respond with a 200 code /lab/predict"
-    # Assert that the response contains a 'prediction' field, which should hold the prediction result
-    assert "prediction" in response.json(), "Response does not contain 'prediction' field"
-    assert isinstance(response.json()["prediction"], float), "'prediction' field is not of type float"
+    assert response.status_code == 200
+    assert "prediction" in response.json()
+    assert isinstance(response.json()["prediction"], float)
 
     
 # This test function checks the /lab/predict endpoint with invalid input data.
