@@ -2,7 +2,6 @@
 from fastapi.testclient import TestClient
 from src.housing_predict import predict_app
 
-
 # Create a TestClient instance using the FastAPI app. This allows us to send HTTP requests
 # to the app and receive responses for testing purposes.
 client = TestClient(predict_app)
@@ -36,7 +35,7 @@ def test_predict_valid_basic():
     assert "prediction" in response.json(), "Response does not contain 'prediction' field"
     assert isinstance(response.json()["prediction"], float), "'prediction' field is not of type float"
 
-    
+
 # This test function checks the /lab/predict endpoint with invalid input data.
 def test_predict_invalid_input():
     # Send a POST request to the /lab/predict endpoint with invalid longitude and latitude
@@ -56,8 +55,9 @@ def test_predict_invalid_input():
     
     json_response = response.json()
     assert "longitude" in str(json_response)
-    assert "float_parsing" in str(json_response)  
-    
+    assert "float_parsing" in str(json_response)
+
+  
 # This test function checks the /lab/predict endpoint with edge case input data.
 def test_predict_edge_case():
     response = client.post("/lab/predict", json={
@@ -90,6 +90,7 @@ def test_predict_missing_feature():
     # Assert that the status code is 422, indicating a validation error for missing fields
     assert response.status_code == 422, "Endpoint did not return the correct error for missing feature"
 
+
 # This test function checks the /lab/predict endpoint with invalid input data.
 def test_predict_invalid_data_type():
     response = client.post("/lab/predict", json={
@@ -109,10 +110,12 @@ def test_predict_invalid_data_type():
     assert "longitude" in str(json_response)
     assert "float_parsing" in str(json_response)
     
+
 # This test function checks the /lab/hello endpoint with valid input data.
 def test_hello_valid_data():
     response = client.get("/lab/hello?name=Jorge")
     assert response.status_code == 200
+
 
 # This test function checks the /lab/hello endpoint with missing input data.
 def test_hello_missing_data():
@@ -121,13 +124,15 @@ def test_hello_missing_data():
     json_response = response.json()
     assert "Name is required" in str(json_response)
 
+
 # This test function checks the /lab/hello endpoint with invalid input data.
 def test_hello_invalid_data():
     response = client.get("/lab/hello?name=123")
     assert response.status_code == 200
     json_response = response.json()
     assert "Hello 123!" in str(json_response)
-    
+
+
 def test_predict_order():
     response = client.post("/lab/predict", json={
         "longitude": -122.1,
@@ -140,11 +145,17 @@ def test_predict_order():
         "AveOccup": 2.5
     })
     
-    assert response.status_code == 200
-    assert "prediction" in response.json(), "Response does not contain 'prediction' field"
-    assert isinstance(response.json()["prediction"], float), "'prediction' field is not of type float"
-
+    # Check if the response status is 200
+    assert response.status_code == 200, "API did not respond with a 200 code"
     
+    # Check if the response contains the 'prediction' field
+    json_response = response.json()
+    assert "prediction" in json_response, "Response does not contain 'prediction' field"
+    
+    # Check if the 'prediction' field is a float
+    assert isinstance(json_response["prediction"], float), "'prediction' field is not of type float"
+
+
 def test_predict_missing_and_extra_feature():
     response = client.post("/lab/predict", json={
         "latitude": 37.7,
@@ -156,6 +167,7 @@ def test_predict_missing_and_extra_feature():
         "extra_feature": "unexpected"
     })
     assert response.status_code == 422, "Endpoint did not return the correct error for missing and extra feature"
+
 
 def test_predict_bad_type():
     response = client.post("/lab/predict", json={
@@ -169,6 +181,7 @@ def test_predict_bad_type():
         "AveOccup": 2.5
     })
     assert response.status_code == 422, "Endpoint did not return the correct error for bad type"
+
 
 def test_predict_bad_type_only_in_format():
     response = client.post("/lab/predict", json={

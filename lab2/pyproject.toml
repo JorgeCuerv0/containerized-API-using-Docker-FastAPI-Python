@@ -7,14 +7,14 @@ readme = "README.md"
 packages = [{ include = "src" }]
 
 [tool.poetry.dependencies]
-python = "^3.11"
-fastapi = "0.112.2"  # Or the initial working version
+python = "~3.11"
+fastapi = "^0.112.2"  # Or the initial working version
 joblib = "1.4.2"
 scikit-learn = "1.5.2"
 
 [tool.poetry.dev-dependencies]
-pytest = "8.3.2"  # Revert to the working version
-ruff = "0.6.2"    # The original version that worked
+pytest = "^8.3.2"  # Revert to the working version
+ruff = "^0.6.2"    # The original version that worked
 httpx = "^0.27.2"
 
 [build-system]
