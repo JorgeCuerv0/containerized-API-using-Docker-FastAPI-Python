@@ -1,34 +1,37 @@
+# Use Python 3.11-slim image as a base
 FROM python:3.11-slim AS builder
 
+# Set the working directory
 WORKDIR /app
 
-# Install runtime dependencies only
-RUN apt-get update && apt-get install -y --no-install-recommends \
-    build-essential \
-    libffi-dev && \
+# Install system dependencies including curl
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends curl && \
     rm -rf /var/lib/apt/lists/*
 
 # Install Poetry
 RUN curl -sSL https://install.python-poetry.org | python3 -
 
-# Copy only necessary files for dependencies
+# Add Poetry to PATH
+ENV PATH="/root/.local/bin:$PATH"
+
+# Copy pyproject.toml and poetry.lock to install dependencies
 COPY pyproject.toml poetry.lock ./
+
+# Install the dependencies using Poetry without dev dependencies
 RUN poetry install --no-dev
 
-# Copy all files
+# Copy all files from current context
 COPY . .
 
+# Set the working directory in the final stage
 FROM python:3.11-slim
 
+# Set the working directory
 WORKDIR /app
 
-# Install runtime dependencies
-RUN apt-get update && apt-get install -y --no-install-recommends \
-    libffi-dev && \
-    rm -rf /var/lib/apt/lists/*
-
-# Copy necessary files from builder
+# Copy necessary files from the builder stage
 COPY --from=builder /app /app
 
-# Entrypoint or command (no explicit uvicorn)
-CMD ["python", "-m", "src.main"]  # Assuming your main script is in src/main.py
+# Set default command for container
+CMD ["python3", "src/main.py"]
