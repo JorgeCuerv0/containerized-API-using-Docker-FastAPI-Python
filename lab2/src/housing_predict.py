@@ -15,9 +15,6 @@ class PredictionRequest(BaseModel):
     population: float = Field(..., gt=0)
     AveOccup: float = Field(..., gt=0)
 
-    class Config:
-        extra = 'forbid'
-
 class PredictionResponse(BaseModel):
     prediction: float
 

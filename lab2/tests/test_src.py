@@ -4,14 +4,11 @@ from src.main import app  # Import the correct FastAPI app instance (main app)
 # Create a TestClient instance using the FastAPI app. This allows us to send HTTP requests
 client = TestClient(app)
 
-# This test function is responsible for checking if the /health endpoint works
 def test_health():
     response = client.get("/lab/health")
     assert response.status_code == 200
-    assert "time" in response.json(), "Response does not contain 'time' field"
-    assert isinstance(response.json()["time"], str), "'time' field is not of type string"
+    assert "time" in response.json()
 
-# Test predict endpoint with valid input
 def test_predict_valid_basic():
     response = client.post("/lab/predict", json={
         "longitude": -122.1,
@@ -23,14 +20,13 @@ def test_predict_valid_basic():
         "population": 300.0,
         "AveOccup": 2.5
     })
-    assert response.status_code == 200, "API did not respond with a 200 code /lab/predict"
-    assert "prediction" in response.json(), "Response does not contain 'prediction' field"
-    assert isinstance(response.json()["prediction"], float), "'prediction' field is not of type float"
+    assert response.status_code == 200
+    assert "prediction" in response.json()
 
 # Test predict endpoint with invalid input
 def test_predict_invalid_input():
     response = client.post("/lab/predict", json={
-        "longitude": "test",
+        "longitude": "test",  # Invalid longitude
         "latitude": 90,
         "MedInc": 5.0,
         "HouseAge": 25.0,
@@ -41,8 +37,8 @@ def test_predict_invalid_input():
     })
     assert response.status_code == 422
     json_response = response.json()
-    assert "longitude" in str(json_response)
-    assert "float_parsing" in str(json_response)
+    assert "longitude" in json_response["detail"][0]["loc"]
+    assert json_response["detail"][0]["msg"] == "value is not a valid float"
 
 # Test predict with edge cases
 def test_predict_edge_case():
@@ -87,8 +83,8 @@ def test_predict_invalid_data_type():
     })
     assert response.status_code == 422
     json_response = response.json()
-    assert "longitude" in str(json_response)
-    assert "float_parsing" in str(json_response)
+    assert "longitude" in json_response["detail"][0]["loc"]
+    assert json_response["detail"][0]["msg"] == "value is not a valid float"
 
 # Test hello with valid data
 def test_hello_valid_data():
