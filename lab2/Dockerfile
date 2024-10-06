@@ -24,7 +24,10 @@ RUN poetry install --no-dev
 # Copy all files from current context
 COPY . .
 
-# Set the working directory in the final stage
+# Install Uvicorn (directly in the Dockerfile, not in pyproject.toml)
+RUN pip install uvicorn
+
+# Final stage (build from here to reduce image size)
 FROM python:3.11-slim
 
 # Set the working directory
@@ -33,9 +36,11 @@ WORKDIR /app
 # Copy necessary files from the builder stage
 COPY --from=builder /app /app
 
-# Set default command for container
-CMD ["python3", "src/main.py"]
+# Expose the port FastAPI will run on
+EXPOSE 8000
 
-# Set the healthcheck
+# Set default command to start Uvicorn and run the FastAPI app
+CMD ["uvicorn", "src.main:app", "--host", "0.0.0.0", "--port", "8000"]
+
+# Set the healthcheck (ensure it points to the correct health endpoint)
 HEALTHCHECK --interval=30s --timeout=5s --retries=3 CMD curl --fail http://localhost:8000/lab/health || exit 1
-

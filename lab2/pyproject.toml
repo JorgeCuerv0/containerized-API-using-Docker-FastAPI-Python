@@ -8,7 +8,7 @@ packages = [{ include = "src" }]
 
 [tool.poetry.dependencies]
 python = "~3.11"
-fastapi = "^0.112.2"  # Or the initial working version
+fastapi = {extras = ["standard"], version = "^0.112.2"}  
 joblib = "1.4.2"
 scikit-learn = "1.5.2"
 
