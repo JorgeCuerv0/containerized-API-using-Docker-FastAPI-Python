@@ -1,7 +1,8 @@
 # Import to create the API and handle errors
 from fastapi import FastAPI, HTTPException
 # Import to create models for request and response validation
-from pydantic import BaseModel, Field
+from pydantic import BaseModel
+from pydantic import Field
 # Import load the machine learning model 
 import joblib
 # Import that allows us to get the current date and time

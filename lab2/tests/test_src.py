@@ -56,9 +56,9 @@ def test_predict_invalid_input():
     # Assert that the status code is 422, which indicates a validation error occurred due to the invalid input
     assert response.status_code == 422
     
-    json_response =  response.json()
+    json_response = response.json()
     assert "longitude" in str(json_response)
-    assert "type_error.float" in str(json_response)
+    assert "type_error.float" in str(json_response)  
     
 # This test function checks the /predict endpoint with edge case input data.
 def test_predict_edge_case():
@@ -107,7 +107,7 @@ def test_predict_invalid_data_type():
     
     assert response.status_code == 422
     
-    json_response =  response.json()
+    json_response = response.json()
     assert "longitude" in str(json_response)
     assert "type_error.float" in str(json_response)
     
