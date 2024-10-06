@@ -20,28 +20,28 @@ class PredictionRequest(BaseModel):
 class PredictionResponse(BaseModel):
     prediction: float
 
-# Create FastAPI instance with the /lab prefix
+# Create FastAPI instance without the /lab prefix
 predict_app = FastAPI()
 
 # Health check endpoint
-@predict_app.get("/lab/health")
+@predict_app.get("/health")
 async def health_check():
     return {"time": datetime.now().isoformat()}
 
 # Hello endpoint
-@predict_app.get("/lab/hello")
+@predict_app.get("/hello")
 async def get_name(name: str = None):
     if not name:
         raise HTTPException(status_code=400, detail="Name is required")
     return {'message': f"Hello {name}!"}
 
 # Root endpoint for not found
-@predict_app.get("/lab/")
+@predict_app.get("/")
 async def not_found():
     raise HTTPException(status_code=404, detail="Not Found")
 
 # Prediction endpoint
-@predict_app.post("/lab/predict", response_model=PredictionResponse)
+@predict_app.post("/predict", response_model=PredictionResponse)
 def predict(request: PredictionRequest):
     try:
         model = joblib.load("model_pipeline.pkl")
