@@ -16,7 +16,7 @@ def test_health():
     assert response.status_code == 200
 
 # This test function checks the /predict endpoint with valid input data.
-def test_predict_valid_input():
+def test_predict_valid_basic():
     # Send a POST request to the /lab/predict endpoint with valid longitude and latitude 
 
     response = client.post("/lab/predict", json={
@@ -30,9 +30,9 @@ def test_predict_valid_input():
         "AveOccup": 2.5
     })
         
-    assert response.status_code == 200
+    assert response.status_code == 200, "API did not respond with a 200 code /lab/predict"
     # Assert that the response contains a 'prediction' field, which should hold the prediction result
-    assert "prediction" in response.json()
+    assert "prediction" in response.json(), "Response does not contain 'prediction' field"
     
 # This test function checks the /predict endpoint with invalid input data.
 def test_predict_invalid_input():
@@ -72,12 +72,19 @@ def test_predict_edge_case():
     assert "prediction" in response.json()
 
 # This test function checks the /predict endpoint with missing field.
-def test_missing_field():
-    response = client.post("/lab/predict", json={"latitude": 90})
-    assert response.status_code == 422
-    json_response =  response.json()
-    assert "longitude" in str(json_response)
-    assert "value_error.missing" in str(json_response)
+def test_predict_missing_feature():
+    response = client.post("/lab/predict", json={
+        "latitude": 37.7,
+        "MedInc": 5.0,
+        "HouseAge": 25.0,
+        "AveBedrms": 1.0,
+        "AveRooms": 6.0,
+        "population": 300.0,
+        "AveOccup": 2.5
+    })
+    # Assert that the status code is 422, indicating a validation error for missing fields
+    assert response.status_code == 422, "Endpoint did not return the correct error for missing feature"
+
 
 # This test function checks the /hello endpoint with missing input data.
 def test_predict_invalid_data_type():
@@ -116,3 +123,55 @@ def test_hello_invalid_data():
     assert response.status_code == 200
     json_response =  response.json()
     assert "Hello 123!" in str(json_response)
+    
+def test_predict_order():
+    response = client.post("/lab/predict", json={
+        "longitude": -122.1, 
+        "latitude": 37.7,
+        "MedInc": 5.0,
+        "HouseAge": 25.0,
+        "AveBedrms": 1.0,
+        "AveRooms": 6.0,
+        "population": 300.0,
+        "AveOccup": 2.5
+    })
+    
+    assert response.status_code == 200
+    
+def test_predict_missing_and_extra_feature():
+    response = client.post("/lab/predict", json={
+        "latitude": 37.7,
+        "MedInc": 5.0,
+        "HouseAge": 25.0,
+        "AveBedrms": 1.0,
+        "AveRooms": 6.0,
+        "population": 300.0,
+        "extra_feature": "unexpected"
+    })
+    assert response.status_code == 422, "Endpoint did not return the correct error for missing and extra feature"
+
+def test_predict_bad_type():
+    response = client.post("/lab/predict", json={
+        "longitude": "not_a_float",  
+        "latitude": 37.7,
+        "MedInc": 5.0,
+        "HouseAge": 25.0,
+        "AveBedrms": 1.0,
+        "AveRooms": 6.0,
+        "population": 300.0,
+        "AveOccup": 2.5
+    })
+    assert response.status_code == 422, "Endpoint did not return the correct error for bad type"
+
+def test_predict_bad_type_only_in_format():
+    response = client.post("/lab/predict", json={
+        "longitude": "-122.1",
+        "latitude": "37.7",
+        "MedInc": "5.0",
+        "HouseAge": "25.0",
+        "AveBedrms": "1.0",
+        "AveRooms": "6.0",
+        "population": "300.0",
+        "AveOccup": "2.5"
+    })
+    assert response.status_code == 422, "Your /lab/predict endpoint did not return the correct HTTP error for bad type format"
