@@ -24,6 +24,7 @@ def test_predict_valid_basic():
     assert "prediction" in response.json()
 
 # Test predict endpoint with invalid input
+# Test predict endpoint with invalid input
 def test_predict_invalid_input():
     response = client.post("/lab/predict", json={
         "longitude": "test",  # Invalid longitude
@@ -37,8 +38,8 @@ def test_predict_invalid_input():
     })
     assert response.status_code == 422
     json_response = response.json()
-    assert "longitude" in json_response["detail"][0]["loc"]
-    assert json_response["detail"][0]["msg"] == "value is not a valid float"
+    assert "Input should be a valid longitude as a number" in json_response["detail"]
+
 
 # Test predict with edge cases
 def test_predict_edge_case():
@@ -57,6 +58,7 @@ def test_predict_edge_case():
     assert isinstance(response.json()["prediction"], float)
 
 # Test predict with missing feature
+# Test predict with missing feature
 def test_predict_missing_feature():
     response = client.post("/lab/predict", json={
         "latitude": 37.7,
@@ -67,7 +69,10 @@ def test_predict_missing_feature():
         "population": 300.0,
         "AveOccup": 2.5
     })
-    assert response.status_code == 422, "Endpoint did not return the correct error for missing feature"
+    assert response.status_code == 422
+    json_response = response.json()
+    assert "Missing fields: longitude" in json_response["detail"]
+
 
 # Test predict with invalid data type
 def test_predict_invalid_data_type():
@@ -162,3 +167,19 @@ def test_predict_bad_type_only_in_format():
         "AveOccup": "2.5"
     })
     assert response.status_code == 200
+    
+def test_predict_extra_feature():
+    response = client.post("/lab/predict", json={
+        "longitude": -122.1,
+        "latitude": 37.7,
+        "MedInc": 5.0,
+        "HouseAge": 25.0,
+        "AveBedrms": 1.0,
+        "AveRooms": 6.0,
+        "population": 300.0,
+        "AveOccup": 2.5,
+        "extra_feature": "unexpected"
+    })
+    assert response.status_code == 422
+    json_response = response.json()
+    assert "Unexpected fields: extra_feature" in json_response["detail"]
