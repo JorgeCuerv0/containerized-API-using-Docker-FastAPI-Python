@@ -8,14 +8,13 @@ packages = [{ include = "src" }]
 
 [tool.poetry.dependencies]
 python = "^3.11"
-fastapi = "0.94.1"  # Adjust based on version compatibility with Pydantic 1.x
-joblib = "^1.4"
-scikit-learn = "^1.5"
-pydantic = "1.10.8"
+fastapi = "0.112.2"  # Or the initial working version
+joblib = "1.4.2"
+scikit-learn = "1.5.2"
 
 [tool.poetry.dev-dependencies]
-pytest = "7.4.2"  # Adjust the version based on your environment
-ruff = "0.6.2"    # Use the version specified by the grader
+pytest = "8.3.2"  # Revert to the working version
+ruff = "0.6.2"    # The original version that worked
 httpx = "^0.27.2"
 
 [build-system]

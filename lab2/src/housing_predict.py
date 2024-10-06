@@ -21,23 +21,23 @@ class PredictionResponse(BaseModel):
     prediction: float
 
 # Prefix with /lab
-app = FastAPI()
+predict_app = FastAPI()
 
-@app.get("/lab/health")
+@predict_app.get("/lab/health")
 async def health_check():
     return {"time": datetime.now().isoformat()}
 
-@app.get("/lab/hello")
+@predict_app.get("/lab/hello")
 async def get_name(name: str = None):
     if not name:
         raise HTTPException(status_code=400, detail="Name is required")
     return {'message': f"Hello {name}!"}
 
-@app.get("/lab/")
+@predict_app.get("/lab/")
 async def not_found():
     raise HTTPException(status_code=404, detail="Not Found")
 
-@app.post("/lab/predict", response_model=PredictionResponse)
+@predict_app.post("/lab/predict", response_model=PredictionResponse)
 def predict(request: PredictionRequest):
     try:
         # Load the trained model (model_pipeline.pkl)

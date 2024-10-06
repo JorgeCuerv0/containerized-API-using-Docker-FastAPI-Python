@@ -1,12 +1,11 @@
 # Import the TestClient class from FastAPI, which allows us to simulate requests to the API
 from fastapi.testclient import TestClient
+from src.housing_predict import predict_app
 
-# Import the FastAPI app instance from the main application file
-from src.main import app
 
 # Create a TestClient instance using the FastAPI app. This allows us to send HTTP requests
 # to the app and receive responses for testing purposes.
-client = TestClient(app)
+client = TestClient(predict_app)
 
 # This test function is responsible for checking if the /lab/health endpoint works
 def test_health():
@@ -57,7 +56,7 @@ def test_predict_invalid_input():
     
     json_response = response.json()
     assert "longitude" in str(json_response)
-    assert "type_error.float" in str(json_response)  
+    assert "float_parsing" in str(json_response)  
     
 # This test function checks the /lab/predict endpoint with edge case input data.
 def test_predict_edge_case():
@@ -108,7 +107,7 @@ def test_predict_invalid_data_type():
     
     json_response = response.json()
     assert "longitude" in str(json_response)
-    assert "type_error.float" in str(json_response)
+    assert "float_parsing" in str(json_response)
     
 # This test function checks the /lab/hello endpoint with valid input data.
 def test_hello_valid_data():
