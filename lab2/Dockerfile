@@ -1,7 +1,10 @@
 # Stage 1: Build
-FROM python:3.11-slim as builder
+FROM python:3.10-slim as builder
 
 WORKDIR /app
+
+# Install build dependencies
+RUN apt-get update && apt-get install -y build-essential curl && rm -rf /var/lib/apt/lists/*
 
 # Copy pyproject.toml and poetry.lock to install dependencies
 COPY pyproject.toml poetry.lock ./
@@ -13,7 +16,7 @@ RUN pip install poetry && poetry install --no-dev
 COPY . .
 
 # Stage 2: Final Image
-FROM python:3.11-slim
+FROM python:3.10-slim
 
 WORKDIR /app
 
@@ -21,7 +24,7 @@ WORKDIR /app
 COPY --from=builder /app /app
 
 # Install runtime dependencies
-RUN pip install --no-cache-dir fastapi scikit-learn joblib uvicorn
+RUN pip install --no-cache-dir fastapi scikit-learn joblib
 
 # Expose the port FastAPI will run on
 EXPOSE 8000
