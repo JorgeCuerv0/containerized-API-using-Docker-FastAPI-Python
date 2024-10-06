@@ -7,15 +7,15 @@ readme = "README.md"
 packages = [{ include = "src" }]
 
 [tool.poetry.dependencies]
-python = ">=3.11,<3.12"  # This allows any 3.11.x version
-fastapi = "0.95.2"
+python = "^3.11"  # Allow any version of Python 3.11
+fastapi = "^0.95"  # Allow any patch version >= 0.95, in case a higher one is required
 scikit-learn = "1.5.2"
 joblib = "1.4.2"
 
 [tool.poetry.dev-dependencies]
-pytest = "7.4.4"
+pytest = "^7.4"  # Use a range for pytest to accommodate more minor versions
 pytest-cov = "^4.0.0"
-ruff = "0.1.0"
+ruff = "^0.1"  # Use a broad range to cover multiple versions of ruff
 
 [build-system]
 requires = ["poetry-core>=1.0.0"]
