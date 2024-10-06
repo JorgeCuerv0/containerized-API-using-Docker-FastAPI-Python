@@ -43,8 +43,8 @@ class PredictionRequest(BaseModel):
     AveOccup: float = Field(..., gt=0)
 
     class Config:
-        extra = 'forbid'  
-    
+        extra = 'forbid'
+           
 # This class defines the structure of the prediction result).
 class PredictionResponse(BaseModel):
     prediction: float

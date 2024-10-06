@@ -1,7 +1,6 @@
-# Use an official lightweight Python image
+# Stage 1: Build
 FROM python:3.11-slim as builder
 
-# Set the working directory
 WORKDIR /app
 
 # Copy pyproject.toml and poetry.lock to install dependencies
@@ -13,12 +12,13 @@ RUN pip install poetry && poetry install --no-dev
 # Copy the rest of the application code
 COPY . .
 
+# Stage 2: Final Image
 FROM python:3.11-slim
 
 WORKDIR /app
 
 # Copy only necessary files from the builder image
-COPY --from=builder /app /app/
+COPY --from=builder /app /app
 
 # Install runtime dependencies
 RUN pip install --no-cache-dir fastapi scikit-learn joblib

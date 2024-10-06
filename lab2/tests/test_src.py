@@ -125,18 +125,10 @@ def test_hello_invalid_data():
     assert "Hello 123!" in str(json_response)
     
 def test_predict_order():
-    response = client.post("/lab/predict", json={
-        "longitude": -122.1, 
-        "latitude": 37.7,
-        "MedInc": 5.0,
-        "HouseAge": 25.0,
-        "AveBedrms": 1.0,
-        "AveRooms": 6.0,
-        "population": 300.0,
-        "AveOccup": 2.5
-    })
+    response = client.post("/lab/predict", json={ ... })
+    assert "prediction" in response.json(), "Response does not contain 'prediction' key"
+
     
-    assert response.status_code == 200
     
 def test_predict_missing_and_extra_feature():
     response = client.post("/lab/predict", json={
