@@ -1,6 +1,6 @@
 from fastapi import FastAPI, HTTPException, Request
 from fastapi.responses import JSONResponse
-from pydantic import BaseModel, Field, root_validator, ValidationError
+from pydantic import BaseModel, Field, ValidationError, ConfigDict
 import joblib
 from datetime import datetime
 
@@ -15,24 +15,10 @@ class PredictionRequest(BaseModel):
     population: float = Field(..., gt=0)
     AveOccup: float = Field(..., gt=0)
 
+    model_config = ConfigDict(extra='forbid')
+
 class PredictionResponse(BaseModel):
     prediction: float
-    
-# Handle missing fields and custom error messages
-@root_validator(pre=True)
-def check_missing_and_extra_fields(cls, values):
-    required_fields = {"longitude", "latitude", "MedInc", "HouseAge", "AveBedrms", "AveRooms", "population", "AveOccup"}
-    provided_fields = set(values.keys())
-
-    missing_fields = required_fields - provided_fields
-    extra_fields = provided_fields - required_fields
-
-    if missing_fields:
-        raise ValueError(f"Missing fields: {', '.join(missing_fields)}")
-    if extra_fields:
-        raise ValueError(f"Unexpected fields: {', '.join(extra_fields)}")
-
-    return values
 
 # Create FastAPI instance with the /lab prefix
 predict_app = FastAPI()
