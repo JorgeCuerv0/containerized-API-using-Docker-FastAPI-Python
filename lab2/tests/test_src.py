@@ -19,7 +19,7 @@ def test_health():
 # This test function checks the /lab/predict endpoint with valid input data.
 def test_predict_valid_basic():
     # Send a POST request to the /lab/predict endpoint with valid longitude and latitude
-    response = client.post("/lab/predict", json={
+    response = client.post("/predict", json={
         "longitude": -122.1,
         "latitude": 37.7,
         "MedInc": 5.0,
@@ -39,7 +39,7 @@ def test_predict_valid_basic():
 # This test function checks the /lab/predict endpoint with invalid input data.
 def test_predict_invalid_input():
     # Send a POST request to the /lab/predict endpoint with invalid longitude and latitude
-    response = client.post("/lab/predict", json={
+    response = client.post("/predict", json={
         "longitude": "test",  # Invalid longitude
         "latitude": 90,       # Valid latitude
         "MedInc": 5.0,
@@ -60,7 +60,7 @@ def test_predict_invalid_input():
   
 # This test function checks the /lab/predict endpoint with edge case input data.
 def test_predict_edge_case():
-    response = client.post("/lab/predict", json={
+    response = client.post("/predict", json={
         "longitude": 180,
         "latitude": 90,
         "MedInc": 5.0,
@@ -78,7 +78,7 @@ def test_predict_edge_case():
 
 # This test function checks the /lab/predict endpoint with missing field.
 def test_predict_missing_feature():
-    response = client.post("/lab/predict", json={
+    response = client.post("/predict", json={
         "latitude": 37.7,
         "MedInc": 5.0,
         "HouseAge": 25.0,
@@ -93,7 +93,7 @@ def test_predict_missing_feature():
 
 # This test function checks the /lab/predict endpoint with invalid input data.
 def test_predict_invalid_data_type():
-    response = client.post("/lab/predict", json={
+    response = client.post("/predict", json={
         "longitude": "test",
         "latitude": 90,
         "MedInc": 5.0,
@@ -134,7 +134,7 @@ def test_hello_invalid_data():
 
 
 def test_predict_order():
-    response = client.post("/lab/predict", json={
+    response = client.post("/predict", json={
         "longitude": -122.1,
         "latitude": 37.7,
         "MedInc": 5.0,
@@ -157,7 +157,7 @@ def test_predict_order():
 
 
 def test_predict_missing_and_extra_feature():
-    response = client.post("/lab/predict", json={
+    response = client.post("/predict", json={
         "latitude": 37.7,
         "MedInc": 5.0,
         "HouseAge": 25.0,
@@ -170,7 +170,7 @@ def test_predict_missing_and_extra_feature():
 
 
 def test_predict_bad_type():
-    response = client.post("/lab/predict", json={
+    response = client.post("/predict", json={
         "longitude": "not_a_float",  
         "latitude": 37.7,
         "MedInc": 5.0,
@@ -184,7 +184,7 @@ def test_predict_bad_type():
 
 
 def test_predict_bad_type_only_in_format():
-    response = client.post("/lab/predict", json={
+    response = client.post("/predict", json={
         "longitude": "-122.1",
         "latitude": "37.7",
         "MedInc": "5.0",
