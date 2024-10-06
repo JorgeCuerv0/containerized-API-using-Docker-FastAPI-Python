@@ -7,8 +7,8 @@ readme = "README.md"
 packages = [{ include = "src" }]
 
 [tool.poetry.dependencies]
-python = "~3.10"  # Specify Python 3.10 using '~'
-fastapi = "0.92.0"  # Downgrade to match the autograder expectations
+python = ">=3.10,<3.12"  # Allow Python versions 3.10 and 3.11
+fastapi = "0.92.0"
 scikit-learn = "1.5.2"
 joblib = "1.4.2"
 
