@@ -26,8 +26,8 @@ def test_predict_valid_basic():
 # Test predict endpoint with invalid input
 def test_predict_invalid_input():
     response = client.post("/lab/predict", json={
-        "longitude": "test",  # Invalid longitude
-        "latitude": 90,
+        "longitude": "test",
+        "latitude": 37.7,
         "MedInc": 5.0,
         "HouseAge": 25.0,
         "AveBedrms": 1.0,
@@ -36,10 +36,7 @@ def test_predict_invalid_input():
         "AveOccup": 2.5
     })
     assert response.status_code == 422
-    json_response = response.json()
-    assert "longitude" in json_response["detail"][0]["loc"]
-    assert json_response["detail"][0]["msg"] == "value is not a valid float"
-
+    assert "Input should be a valid longitude as a number" in response.json()["detail"]
 # Test predict with edge cases
 def test_predict_edge_case():
     response = client.post("/lab/predict", json={
@@ -127,17 +124,18 @@ def test_predict_order():
 # Test predict with missing and extra feature
 def test_predict_missing_and_extra_feature():
     response = client.post("/lab/predict", json={
+        "longitude": -122.1,
         "latitude": 37.7,
         "MedInc": 5.0,
         "HouseAge": 25.0,
         "AveBedrms": 1.0,
         "AveRooms": 6.0,
         "population": 300.0,
-        "extra_feature": "unexpected"
+        "extra_feature": 100
     })
     assert response.status_code == 422
-    json_response = response.json()
-    assert "Unexpected fields: extra_feature" in json_response["detail"]
+    assert "Unexpected fields: extra_feature" in response.json()["detail"]
+    assert "Missing required field: AveOccup" in response.json()["detail"]
 
 # Test predict with bad data type
 def test_predict_bad_type():
@@ -166,3 +164,5 @@ def test_predict_bad_type_only_in_format():
         "AveOccup": "2.5"
     })
     assert response.status_code == 200
+
+
