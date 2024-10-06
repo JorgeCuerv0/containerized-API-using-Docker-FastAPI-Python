@@ -1,4 +1,4 @@
-# Use Python 3.11-slim as the base image
+# Use Python 3.11-slim image as a base
 FROM python:3.11-slim AS builder
 
 # Set the working directory

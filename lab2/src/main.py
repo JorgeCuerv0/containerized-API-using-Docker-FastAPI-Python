@@ -1,8 +1,8 @@
 from fastapi import FastAPI
 from src.housing_predict import predict_app
 
-# Main app
+# Create the main FastAPI instance
 app = FastAPI()
 
-# Mounting the sub-application for the predict endpoint
+# Mount the sub-application for the /lab endpoint
 app.mount("/lab", predict_app)
