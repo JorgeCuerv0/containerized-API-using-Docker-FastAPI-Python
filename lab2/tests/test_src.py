@@ -1,11 +1,11 @@
 # Import the TestClient class from FastAPI, which allows us to simulate requests to the API
 from fastapi.testclient import TestClient
-from src.housing_predict import predict_app
+from src.main import app  # Import the correct FastAPI app instance (main app)
 
 
 # Create a TestClient instance using the FastAPI app. This allows us to send HTTP requests
 # to the app and receive responses for testing purposes.
-client = TestClient(predict_app)
+client = TestClient(app)
 
 # This test function is responsible for checking if the /lab/health endpoint works
 def test_health():
