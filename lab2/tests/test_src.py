@@ -8,7 +8,7 @@ from src.main import app
 # to the app and receive responses for testing purposes.
 client = TestClient(app)
 
-# This test function is responsible for checking if the /health endpoint works 
+# This test function is responsible for checking if the /health endpoint works
 def test_health():
     # Send a GET request to the /lab/health endpoint
     response = client.get("/lab/health")
@@ -17,10 +17,10 @@ def test_health():
 
 # This test function checks the /predict endpoint with valid input data.
 def test_predict_valid_basic():
-    # Send a POST request to the /lab/predict endpoint with valid longitude and latitude 
+    # Send a POST request to the /lab/predict endpoint with valid longitude and latitude
 
     response = client.post("/lab/predict", json={
-        "longitude": -122.1, 
+        "longitude": -122.1,
         "latitude": 37.7,
         "MedInc": 5.0,
         "HouseAge": 25.0,
@@ -36,7 +36,7 @@ def test_predict_valid_basic():
     
 # This test function checks the /predict endpoint with invalid input data.
 def test_predict_invalid_input():
-    # Send a POST request to the /lab/predict endpoint with invalid longitude and latitude 
+    # Send a POST request to the /lab/predict endpoint with invalid longitude and latitude
     response = client.post("/lab/predict", json={
         "longitude": "test",  # Invalid longitude
         "latitude": 90,       # Valid latitude
@@ -58,7 +58,7 @@ def test_predict_invalid_input():
 # This test function checks the /predict endpoint with edge case input data.
 def test_predict_edge_case():
     response = client.post("/lab/predict", json={
-        "longitude": 180, 
+        "longitude": 180,
         "latitude": 90,
         "MedInc": 5.0,
         "HouseAge": 25.0,
@@ -85,11 +85,10 @@ def test_predict_missing_feature():
     # Assert that the status code is 422, indicating a validation error for missing fields
     assert response.status_code == 422, "Endpoint did not return the correct error for missing feature"
 
-
-# This test function checks the /hello endpoint with missing input data.
+# This test function checks the /predict endpoint with invalid input data.
 def test_predict_invalid_data_type():
     response = client.post("/lab/predict", json={
-        "longitude": "test", 
+        "longitude": "test",
         "latitude": 90,
         "MedInc": 5.0,
         "HouseAge": 25.0,
@@ -125,10 +124,18 @@ def test_hello_invalid_data():
     assert "Hello 123!" in str(json_response)
     
 def test_predict_order():
-    response = client.post("/lab/predict", json={ ... })
-    assert "prediction" in response.json(), "Response does not contain 'prediction' key"
-
+    response = client.post("/lab/predict", json={
+        "longitude": -122.1,
+        "latitude": 37.7,
+        "MedInc": 5.0,
+        "HouseAge": 25.0,
+        "AveBedrms": 1.0,
+        "AveRooms": 6.0,
+        "population": 300.0,
+        "AveOccup": 2.5
+    })
     
+    assert response.status_code == 200
     
 def test_predict_missing_and_extra_feature():
     response = client.post("/lab/predict", json={
