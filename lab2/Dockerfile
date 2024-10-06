@@ -35,3 +35,7 @@ COPY --from=builder /app /app
 
 # Set default command for container
 CMD ["python3", "src/main.py"]
+
+# Set the healthcheck
+HEALTHCHECK --interval=30s --timeout=5s --retries=3 CMD curl --fail http://localhost:8000/health || exit 1
+
