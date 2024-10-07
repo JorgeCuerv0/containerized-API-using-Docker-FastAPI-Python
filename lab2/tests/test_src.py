@@ -4,6 +4,7 @@ from src.main import app  # Import the correct FastAPI app instance (main app)
 # Create a TestClient instance using the FastAPI app
 client = TestClient(app)
 
+# Ensure the "/lab/health" endpoint is defined in the app
 @app.get("/lab/health")
 def health_check():
     return {"status": "ok", "time": datetime.now().isoformat()}
@@ -34,7 +35,7 @@ def test_predict_invalid_input():
         "AveOccup": 2.5
     })
     assert response.status_code == 422
-    assert "value is not a valid float" in response.json()["detail"][0]["msg"]
+    assert "Input should be a valid number" in response.json()["detail"][0]["msg"]
 
 def test_predict_edge_case():
     response = client.post("/lab/predict", json={
@@ -79,7 +80,7 @@ def test_predict_invalid_data_type():
     assert response.status_code == 422
     json_response = response.json()
     assert "longitude" in json_response["detail"][0]["loc"]
-    assert json_response["detail"][0]["msg"] == "value is not a valid float"
+    assert json_response["detail"][0]["msg"] == "Input should be a valid number, unable to parse string as a number"
 
 def test_hello_valid_data():
     response = client.get("/lab/hello?name=Jorge")
@@ -115,7 +116,7 @@ def test_predict_order():
     assert "prediction" in json_response
     assert isinstance(json_response["prediction"], float)
 
-# Test predict with missing and extra feature
+
 def test_predict_missing_and_extra_feature():
     response = client.post("/lab/predict", json={
         "longitude": -122.1,
@@ -129,8 +130,22 @@ def test_predict_missing_and_extra_feature():
     })
     assert response.status_code == 422
     json_response = response.json()
-    # Check for missing field 'AveOccup'
-    assert any(detail['loc'] == ['body', 'AveOccup'] and 'field required' in detail['msg'] for detail in json_response['detail'])
+
+    # Check if 'AveOccup' is flagged as missing
+    missing_field_error = any(
+        detail["loc"] == ["body", "AveOccup"] and "Field required" in detail["msg"]
+        for detail in json_response["detail"]
+    )
+    # Check if 'extra_feature' is flagged as an extra field
+    extra_field_error = any(
+        detail["loc"] == ["body", "extra_feature"] and "Extra inputs are not permitted" in detail["msg"]
+        for detail in json_response["detail"]
+    )
+
+    assert missing_field_error, "'AveOccup' field missing validation not found."
+    assert extra_field_error, "'extra_feature' extra field validation not found."
+
+
 
 def test_predict_bad_type():
     response = client.post("/lab/predict", json={
