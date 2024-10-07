@@ -20,9 +20,10 @@ COPY pyproject.toml poetry.lock ./
 
 # Step 7: Install only production dependencies (no dev dependencies) using Poetry
 RUN poetry install --no-dev
+COPY . /app
 
-# Step 8: Copy the entire project directory into the container
-COPY . .
+# Step 8: Debugging step - output installed packages after installation
+RUN pip freeze > /app/installed_packages.txt
 
 # Step 9: Start a new, final stage using a smaller Python image to reduce image size
 FROM python:3.11-slim
@@ -33,8 +34,8 @@ WORKDIR /app
 # Step 11: Copy the installed dependencies and app files from the builder stage
 COPY --from=builder /app /app
 
-# Step 12: Install Uvicorn explicitly in this stage
-RUN pip install uvicorn
+# Step 12: Install FastAPI and Uvicorn explicitly in this stage
+RUN pip install fastapi uvicorn
 
 # Step 13: Expose port 8000, which will be used by FastAPI/Uvicorn
 EXPOSE 8000
