@@ -1,12 +1,10 @@
-import logging
 from fastapi import FastAPI
+from src.housing_predict import predict_app, router
 
 app = FastAPI()
 
-logging.basicConfig(level=logging.INFO)
-logger = logging.getLogger(__name__)
+# Mount the predict_app as a sub-application under /lab
+app.mount("/lab", predict_app)
 
-@app.get("/lab/health")
-def health_check():
-    logger.info("Health check endpoint hit")
-    return {"status": "healthy"}
+# Include other routes like /health using APIRouter
+app.include_router(router)

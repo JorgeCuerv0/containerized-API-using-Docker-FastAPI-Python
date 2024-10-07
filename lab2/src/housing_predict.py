@@ -1,15 +1,17 @@
-from fastapi import FastAPI, HTTPException
-import joblib
+from fastapi import APIRouter, HTTPException, FastAPI
 from pydantic import BaseModel, field_validator
+import joblib
 from datetime import datetime
 
-# Create the FastAPI instance
+# Router for non-prediction related routes
+router = APIRouter()
+
+# Create a separate FastAPI instance for prediction-related routes
 predict_app = FastAPI()
 
-# Load your trained model (make sure the path is correct)
+# Load your trained model
 model = joblib.load("model_pipeline.pkl")
 
-# Define the input data schema using Pydantic's BaseModel
 class PredictionRequest(BaseModel):
     longitude: float
     latitude: float
@@ -20,8 +22,7 @@ class PredictionRequest(BaseModel):
     population: float
     AveOccup: float
 
-    # Prevent extra fields in the input
-    model_config = {"extra": "forbid"}
+    model_config = {"extra": "forbid"}  # Prevent extra fields in the input
 
     @field_validator('longitude')
     @classmethod
@@ -36,9 +37,14 @@ class PredictionRequest(BaseModel):
         if not (-90 <= v <= 90):
             raise ValueError('Invalid value for Latitude')
         return v
+    
+# Define a health check route in the APIRouter
+@router.get("/health")
+def health_check():
+    return {"status": "ok", "time": datetime.now().isoformat()}
 
-# The POST endpoint to predict the house price based on the input features
-@predict_app.post("/lab/predict")
+# Define the predict route in the predict_app
+@predict_app.post("/predict")
 def get_prediction(request: PredictionRequest):
     data = [
         request.longitude,
@@ -51,12 +57,7 @@ def get_prediction(request: PredictionRequest):
         request.AveOccup
     ]
     try:
-        prediction = model.predict([data])  # Make sure this returns an array-like structure
-        return {"prediction": float(prediction[0])}  # Return the prediction as a float
+        prediction = model.predict([data])
+        return {"prediction": float(prediction[0])}
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
-
-# Health check endpoint
-@predict_app.get("/health")
-def health_check():
-    return {"status": "ok", "time": int(datetime.now().timestamp())}  # Return epoch time

@@ -35,7 +35,7 @@ WORKDIR /app
 COPY --from=builder /app /app
 
 # Step 12: Install FastAPI and Uvicorn explicitly in this stage
-RUN pip install fastapi uvicorn
+RUN pip install fastapi uvicorn joblib scikit-learn
 
 # Step 13: Expose port 8000, which will be used by FastAPI/Uvicorn
 EXPOSE 8000
@@ -44,4 +44,4 @@ EXPOSE 8000
 CMD ["uvicorn", "src.main:app", "--host", "0.0.0.0", "--port", "8000"]
 
 # Step 15: Define a health check for the container, pointing to the /lab/health endpoint
-HEALTHCHECK --interval=30s --timeout=5s --retries=3 CMD curl --fail http://localhost:8000/lab/health || exit 1
+HEALTHCHECK --interval=30s --timeout=5s --retries=3 CMD curl --fail http://localhost:8000/health || exit 1
