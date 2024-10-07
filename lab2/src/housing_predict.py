@@ -58,6 +58,6 @@ def get_prediction(request: PredictionRequest):
     ]
     try:
         prediction = model.predict([data])
-        return {"prediction": float(prediction[0])}
+        return {"prediction": float(prediction)}
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
