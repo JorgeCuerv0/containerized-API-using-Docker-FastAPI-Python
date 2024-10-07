@@ -3,11 +3,10 @@ import joblib
 from pydantic import BaseModel, field_validator
 from datetime import datetime
 
-
 # Create the FastAPI instance
 predict_app = FastAPI()
 
-# Load your trained model
+# Load your trained model (make sure the path is correct)
 model = joblib.load("model_pipeline.pkl")
 
 # Define the input data schema using Pydantic's BaseModel
@@ -21,7 +20,8 @@ class PredictionRequest(BaseModel):
     population: float
     AveOccup: float
 
-    model_config = {"extra": "forbid"}  # Prevent extra fields in the input
+    # Prevent extra fields in the input
+    model_config = {"extra": "forbid"}
 
     @field_validator('longitude')
     @classmethod
@@ -38,7 +38,6 @@ class PredictionRequest(BaseModel):
         return v
 
 # The POST endpoint to predict the house price based on the input features
-@predict_app.post("/predict")
 @predict_app.post("/lab/predict")
 def get_prediction(request: PredictionRequest):
     data = [
@@ -52,14 +51,12 @@ def get_prediction(request: PredictionRequest):
         request.AveOccup
     ]
     try:
-        prediction = model.predict([data])  # Ensure this returns an array-like structure
-        return {"prediction": float(prediction[0])}  # Ensure this is a float
+        prediction = model.predict([data])  # Make sure this returns an array-like structure
+        return {"prediction": float(prediction[0])}  # Return the prediction as a float
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
-
 
 # Health check endpoint
 @predict_app.get("/health")
 def health_check():
-    return {"status": "ok", "time": int(datetime.now().timestamp())}
-
+    return {"status": "ok", "time": int(datetime.now().timestamp())}  # Return epoch time
