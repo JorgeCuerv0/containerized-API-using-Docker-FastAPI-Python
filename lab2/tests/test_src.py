@@ -1,5 +1,6 @@
+# Import TestClient to test our FastAPI app and the FastAPI app instance from src.main
 from fastapi.testclient import TestClient
-from src.main import app  # We make sure to import the correct FastAPI app instance (the main app)
+from src.main import app
 
 client = TestClient(app)
 
@@ -15,10 +16,8 @@ def test_predict_basic():
         "population": 300.0,
         "AveOccup": 2.5
     })
-    # Print the response for debugging in case it fails
-    print("Response for test_predict_basic: ", response.json())
-    
-    # Ensure the API responds with status code 200 and includes a prediction
+    # Debug response logging
+    print("Response for test_predict_basic:", response.json())
     assert response.status_code == 200, "API did not respond with 200 code."
     assert "prediction" in response.json(), "Prediction key missing in response."
 
@@ -34,14 +33,11 @@ def test_predict_order():
         "population": 300.0,
         "AveOccup": 2.5
     })
-    # Print the response for debugging in case it fails
-    print("Response for test_predict_order: ", response.json())
-    
-    # Ensure the API responds with status code 200 and includes a prediction
+    print("Response for test_predict_order:", response.json())
     assert response.status_code == 200
     assert "prediction" in response.json(), "Prediction key missing in response."
 
-# Test for both missing and extra fields (missing AveOccup, extra extra_feature) (Autograder: test_predict_missing_and_extra_feature)
+# Test for both missing and extra fields (Autograder: test_predict_missing_and_extra_feature)
 def test_predict_missing_and_extra_feature():
     response = client.post("/lab/predict", json={
         "longitude": -122.1,
@@ -53,11 +49,9 @@ def test_predict_missing_and_extra_feature():
         "population": 300.0,
         "extra_feature": 100  # Extra field that's not part of the model
     })
+    print("Response for test_predict_missing_and_extra_feature:", response.json())
+    assert response.status_code == 422, "Expected 422 status code for missing or extra features."
     
-    # Print the response for debugging
-    print("Response for test_predict_missing_and_extra_feature: ", response.json())
-    
-    assert response.status_code == 422
     json_response = response.json()
 
     # Check if 'AveOccup' is flagged as missing
@@ -74,7 +68,7 @@ def test_predict_missing_and_extra_feature():
     assert missing_field_error, "'AveOccup' field missing validation not found."
     assert extra_field_error, "'extra_feature' extra field validation not found."
 
-# Test for invalid types (strings where floats are expected) (Autograder: test_predict_bad_type)
+# Test for invalid types (Autograder: test_predict_bad_type)
 def test_predict_bad_type():
     response = client.post("/lab/predict", json={
         "longitude": "not_a_float",
@@ -86,13 +80,10 @@ def test_predict_bad_type():
         "population": 300.0,
         "AveOccup": 2.5
     })
-    # Print the response for debugging
-    print("Response for test_predict_bad_type: ", response.json())
-    
-    # The API should return a 422 error due to incorrect data type
-    assert response.status_code == 422
+    print("Response for test_predict_bad_type:", response.json())
+    assert response.status_code == 422, "Expected 422 status code for invalid data types."
 
-# Test for string inputs that are in float format (still valid because they can be parsed as numbers) (Autograder: test_predict_bad_type_only_in_format)
+# Test for string inputs that can be converted to floats (Autograder: test_predict_bad_type_only_in_format)
 def test_predict_bad_type_only_in_format():
     response = client.post("/lab/predict", json={
         "longitude": "-122.1",
@@ -104,9 +95,6 @@ def test_predict_bad_type_only_in_format():
         "population": "300.0",
         "AveOccup": "2.5"
     })
-    # Print the response for debugging
-    print("Response for test_predict_bad_type_only_in_format: ", response.json())
-    
-    # Even though the input is string, it can be converted into numbers, so 200 OK is expected
-    assert response.status_code == 200
+    print("Response for test_predict_bad_type_only_in_format:", response.json())
+    assert response.status_code == 200, "Expected 200 OK for parsable strings as numbers."
     assert "prediction" in response.json()
