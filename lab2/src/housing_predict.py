@@ -2,11 +2,10 @@ from fastapi import FastAPI, HTTPException
 import joblib
 from pydantic import BaseModel, field_validator
 
-# Create the sub-application, which will be mounted in the main app
+# Create the sub-application for housing price prediction
 predict_app = FastAPI()
 
-# Load the pre-trained machine learning model
-# The model path must be correct for the predictions to work
+# Load the machine learning model
 model = joblib.load("model_pipeline.pkl")
 
 # Define the input data schema using Pydantic's BaseModel
@@ -20,18 +19,18 @@ class PredictionRequest(BaseModel):
     population: float # Population in the area
     AveOccup: float   # Average number of occupants per household
 
-    # Prevent any extra fields from being passed in the request body
+    # Prevent any extra fields from being passed in 
     class Config:
         extra = "forbid"
 
-    # Validator for longitude: Ensures it falls within the valid range
+    # Ensures it falls within the valid range
     @field_validator('longitude')
     def check_longitude(cls, v):
         if not (-180 <= v <= 180):
             raise ValueError('Invalid value for Longitude')
         return v
 
-    # Validator for latitude: Ensures it falls within the valid range
+    # Ensures it falls within the valid range
     @field_validator('latitude')
     def check_latitude(cls, v):
         if not (-90 <= v <= 90):
@@ -53,21 +52,21 @@ def get_prediction(request: PredictionRequest):
         request.AveOccup
     ]
     
-    # Use the pre-trained model to make a prediction
+    # Use the model to make a prediction
     prediction = model.predict([data])
 
     # Return the prediction as part of the response
-    return {"prediction": prediction[0]}
+    return {"prediction": float(prediction[0])}
 
-# The "hello" endpoint - Simply returns a greeting message
+# The "hello" endpoint returns a greeting message
 @predict_app.get("/hello")
 def get_hello(name: str = None):
     if not name:
-        # If no name is provided, raise a 400 error with a meaningful message
+        # If no name is provided, raise a 400 error
         raise HTTPException(status_code=400, detail="Name is required")
     return {"message": f"Hello {name}!"}
 
-# A health check endpoint - Used to ensure the service is running properly
+# A health check endpoint tells us the service is running properly
 @predict_app.get("/health")
 def health_check():
     return {"status": "healthy"}
