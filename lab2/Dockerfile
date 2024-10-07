@@ -1,46 +1,46 @@
-# Use Python 3.11-slim image as a base
+# Step 1: Use the official Python 3.11-slim image as the base for the build
 FROM python:3.11-slim AS builder
 
-# Set the working directory
+# Step 2: Set the working directory in the container to /app
 WORKDIR /app
 
-# Install system dependencies including curl
+# Step 3: Install system dependencies, including curl for downloading Poetry
 RUN apt-get update && \
     apt-get install -y --no-install-recommends curl && \
     rm -rf /var/lib/apt/lists/*
 
-# Install Poetry
+# Step 4: Install Poetry, a tool to manage Python dependencies
 RUN curl -sSL https://install.python-poetry.org | python3 -
 
-# Add Poetry to PATH
+# Step 5: Add Poetry to the system PATH
 ENV PATH="/root/.local/bin:$PATH"
 
-# Copy pyproject.toml and poetry.lock to install dependencies
+# Step 6: Copy the pyproject.toml and poetry.lock files to install dependencies
 COPY pyproject.toml poetry.lock ./
 
-# Install the dependencies using Poetry without dev dependencies
+# Step 7: Install only production dependencies (no dev dependencies) using Poetry
 RUN poetry install --no-dev
 
-# Copy all files from current context
+# Step 8: Copy the entire project directory into the container
 COPY . .
 
-# Final stage (build from here to reduce image size)
+# Step 9: Start a new, final stage using a smaller Python image to reduce image size
 FROM python:3.11-slim
 
-# Set the working directory
+# Step 10: Set the working directory to /app
 WORKDIR /app
 
-# Copy necessary files from the builder stage
+# Step 11: Copy the installed dependencies and app files from the builder stage
 COPY --from=builder /app /app
 
-# Install Uvicorn explicitly in the final image
+# Step 12: Install Uvicorn explicitly in this stage
 RUN pip install uvicorn
 
-# Expose the port FastAPI will run on
+# Step 13: Expose port 8000, which will be used by FastAPI/Uvicorn
 EXPOSE 8000
 
-# Set default command to start Uvicorn and run the FastAPI app
+# Step 14: Set the default command to start the FastAPI app using Uvicorn
 CMD ["uvicorn", "src.main:app", "--host", "0.0.0.0", "--port", "8000"]
 
-# Set the healthcheck (ensure it points to the correct health endpoint)
+# Step 15: Define a health check for the container, pointing to the /lab/health endpoint
 HEALTHCHECK --interval=30s --timeout=5s --retries=3 CMD curl --fail http://localhost:8000/lab/health || exit 1
