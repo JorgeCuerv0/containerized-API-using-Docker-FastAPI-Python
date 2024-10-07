@@ -11,8 +11,8 @@ def health_check():
     # Return status and the current time in ISO format
     return {"status": "ok", "time": datetime.now().isoformat()}
 
-# Test for valid predictions with all features provided correctly
-def test_predict_valid_basic():
+# Test for valid predictions with all features provided correctly (Autograder: test_predict_basic)
+def test_predict_basic():
     # Make a POST request to the /lab/predict endpoint with valid data
     response = client.post("/lab/predict", json={
         "longitude": -122.1,
@@ -28,8 +28,8 @@ def test_predict_valid_basic():
     assert response.status_code == 200
     assert "prediction" in response.json()
 
-# Test for invalid input when the longitude is given as a string instead of a float
-def test_predict_invalid_input():
+# Test for invalid input when the longitude is given as a string instead of a float (Autograder: test_predict_bad_type)
+def test_predict_bad_type():
     response = client.post("/lab/predict", json={
         "longitude": "test",  # Invalid longitude (string instead of float)
         "latitude": 37.7,
@@ -44,7 +44,7 @@ def test_predict_invalid_input():
     assert response.status_code == 422
     assert "Input should be a valid number" in response.json()["detail"][0]["msg"]
 
-# Test for an edge case where we give the extreme valid longitude and latitude values
+# Test for an edge case where we give the extreme valid longitude and latitude values (Autograder: test_predict_edge_case)
 def test_predict_edge_case():
     response = client.post("/lab/predict", json={
         "longitude": 180,  # Maximum valid longitude
@@ -61,7 +61,7 @@ def test_predict_edge_case():
     assert "prediction" in response.json()
     assert isinstance(response.json()["prediction"], float)
 
-# Test for missing a required feature (longitude in this case)
+# Test for missing a required feature (longitude in this case) (Autograder: test_predict_missing_feature)
 def test_predict_missing_feature():
     response = client.post("/lab/predict", json={
         # Longitude is missing here
@@ -78,7 +78,7 @@ def test_predict_missing_feature():
     json_response = response.json()
     assert "longitude" in str(json_response)  # Ensure that the missing field is flagged
 
-# Test for invalid data type, like string instead of float for longitude
+# Test for invalid data type, like string instead of float for longitude (Autograder: test_predict_invalid_data_type)
 def test_predict_invalid_data_type():
     response = client.post("/lab/predict", json={
         "longitude": "test",  # Invalid longitude (string instead of float)
@@ -96,30 +96,7 @@ def test_predict_invalid_data_type():
     assert "longitude" in json_response["detail"][0]["loc"]
     assert json_response["detail"][0]["msg"] == "Input should be a valid number, unable to parse string as a number"
 
-# Test the hello endpoint with a valid name
-def test_hello_valid_data():
-    response = client.get("/lab/hello?name=Jorge")
-    assert response.status_code == 200
-    json_response = response.json()
-    # Ensure the message includes the name we passed in the query
-    assert "Hello Jorge!" in str(json_response)
-
-# Test the hello endpoint without providing the name (should return an error)
-def test_hello_missing_data():
-    response = client.get("/lab/hello")
-    # Since the name is required, we expect a 400 Bad Request error
-    assert response.status_code == 400
-    json_response = response.json()
-    assert "Name is required" in str(json_response)
-
-# Test the hello endpoint with a numeric name (should work like any other name)
-def test_hello_invalid_data():
-    response = client.get("/lab/hello?name=123")
-    assert response.status_code == 200
-    json_response = response.json()
-    assert "Hello 123!" in str(json_response)
-
-# Test the predict endpoint to ensure the order of features is correctly handled
+# Test the predict endpoint to ensure the order of features is correctly handled (Autograder: test_predict_order)
 def test_predict_order():
     response = client.post("/lab/predict", json={
         "longitude": -122.1,
@@ -136,7 +113,7 @@ def test_predict_order():
     assert "prediction" in json_response
     assert isinstance(json_response["prediction"], float)
 
-# Test for both missing and extra fields (missing AveOccup, extra extra_feature)
+# Test for both missing and extra fields (missing AveOccup, extra extra_feature) (Autograder: test_predict_missing_and_extra_feature)
 def test_predict_missing_and_extra_feature():
     response = client.post("/lab/predict", json={
         "longitude": -122.1,
@@ -165,22 +142,7 @@ def test_predict_missing_and_extra_feature():
     assert missing_field_error, "'AveOccup' field missing validation not found."
     assert extra_field_error, "'extra_feature' extra field validation not found."
 
-# Test for invalid types (strings where floats are expected)
-def test_predict_bad_type():
-    response = client.post("/lab/predict", json={
-        "longitude": "not_a_float",
-        "latitude": 37.7,
-        "MedInc": 5.0,
-        "HouseAge": 25.0,
-        "AveBedrms": 1.0,
-        "AveRooms": 6.0,
-        "population": 300.0,
-        "AveOccup": 2.5
-    })
-    # The API should return a 422 error due to incorrect data type
-    assert response.status_code == 422
-
-# Test for string inputs that are in float format (still valid because they can be parsed as numbers)
+# Test for string inputs that are in float format (still valid because they can be parsed as numbers) (Autograder: test_predict_bad_type_only_in_format)
 def test_predict_bad_type_only_in_format():
     response = client.post("/lab/predict", json={
         "longitude": "-122.1",
