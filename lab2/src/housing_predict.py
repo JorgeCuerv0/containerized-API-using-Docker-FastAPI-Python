@@ -1,8 +1,8 @@
-from pydantic import BaseModel, field_validator  # Make sure this is here
 from fastapi import FastAPI, HTTPException
 import joblib
+from pydantic import BaseModel, field_validator
 
-# Create the sub-application
+# Create the FastAPI instance
 predict_app = FastAPI()
 
 # Load your trained model
@@ -10,21 +10,17 @@ model = joblib.load("model_pipeline.pkl")
 
 # Define the input data schema using Pydantic's BaseModel
 class PredictionRequest(BaseModel):
-    longitude: float  # Longitude of the location
-    latitude: float   # Latitude of the location
-    MedInc: float     # Median income in the area
-    HouseAge: float   # Median age of the houses
-    AveBedrms: float  # Average number of bedrooms per house
-    AveRooms: float   # Average number of rooms per house
-    population: float # Population in the area
-    AveOccup: float   # Average number of occupants per household
+    longitude: float
+    latitude: float
+    MedInc: float
+    HouseAge: float
+    AveBedrms: float
+    AveRooms: float
+    population: float
+    AveOccup: float
 
-    # Updated config for Pydantic v2
-    model_config = {
-        "extra": "forbid"  # Prevent extra fields from being passed in the request body
-    }
+    model_config = {"extra": "forbid"}  # Prevent extra fields in the input
 
-    # Validator for longitude: Ensures it falls within the valid range
     @field_validator('longitude')
     @classmethod
     def check_longitude(cls, v):
@@ -32,7 +28,6 @@ class PredictionRequest(BaseModel):
             raise ValueError('Invalid value for Longitude')
         return v
 
-    # Validator for latitude: Ensures it falls within the valid range
     @field_validator('latitude')
     @classmethod
     def check_latitude(cls, v):
@@ -56,19 +51,15 @@ def get_prediction(request: PredictionRequest):
     ]
     
     # Use the pre-trained model to make a prediction
-    prediction = model.predict([data])
+    try:
+        prediction = model.predict([data])
+        # Ensure the output is always a float and format it in a JSON object
+        return {"prediction": float(prediction[0])}
+    except Exception as e:
+        # If prediction fails, return a 400 error
+        raise HTTPException(status_code=400, detail=f"Prediction failed: {str(e)}")
 
-    # Return the prediction as part of the response
-    return {"prediction": prediction[0]}
-
-# The "hello" endpoint returns a greeting message
-@predict_app.get("/hello")
-def get_hello(name: str = None):
-    if not name:
-        raise HTTPException(status_code=400, detail="Name is required")
-    return {"message": f"Hello {name}!"}
-
-# A health check endpoint tells us the service is running properly
+# Health check endpoint
 @predict_app.get("/health")
 def health_check():
     return {"status": "healthy"}
