@@ -1,6 +1,8 @@
 from fastapi import FastAPI, HTTPException
 import joblib
 from pydantic import BaseModel, field_validator
+from datetime import datetime
+
 
 # Create the FastAPI instance
 predict_app = FastAPI()
@@ -37,8 +39,8 @@ class PredictionRequest(BaseModel):
 
 # The POST endpoint to predict the house price based on the input features
 @predict_app.post("/predict")
+@predict_app.post("/lab/predict")
 def get_prediction(request: PredictionRequest):
-    # Collect the data from the request and format it for the model
     data = [
         request.longitude,
         request.latitude,
@@ -49,17 +51,15 @@ def get_prediction(request: PredictionRequest):
         request.population,
         request.AveOccup
     ]
-    
-    # Use the pre-trained model to make a prediction
     try:
-        prediction = model.predict([data])
-        # Ensure the output is always a float and format it in a JSON object
-        return {"prediction": float(prediction[0])}
+        prediction = model.predict([data])  # Ensure this returns an array-like structure
+        return {"prediction": float(prediction[0])}  # Ensure this is a float
     except Exception as e:
-        # If prediction fails, return a 400 error
-        raise HTTPException(status_code=400, detail=f"Prediction failed: {str(e)}")
+        raise HTTPException(status_code=500, detail=str(e))
+
 
 # Health check endpoint
 @predict_app.get("/health")
 def health_check():
-    return {"status": "healthy"}
+    return {"status": "ok", "time": int(datetime.now().timestamp())}
+
