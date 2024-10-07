@@ -1,46 +1,50 @@
 from fastapi import FastAPI, HTTPException
+from pydantic import BaseModel, validator
 import joblib
-from pydantic import BaseModel, field_validator
 
-# Create the sub-application for housing price prediction
+# Create the FastAPI app for prediction
 predict_app = FastAPI()
 
-# Load the machine learning model
+# Load the pre-trained machine learning model
 model = joblib.load("model_pipeline.pkl")
 
 # Define the input data schema using Pydantic's BaseModel
 class PredictionRequest(BaseModel):
-    longitude: float  # Longitude of the location
-    latitude: float   # Latitude of the location
-    MedInc: float     # Median income in the area
-    HouseAge: float   # Median age of the houses
-    AveBedrms: float  # Average number of bedrooms per house
-    AveRooms: float   # Average number of rooms per house
-    population: float # Population in the area
-    AveOccup: float   # Average number of occupants per household
+    longitude: float
+    latitude: float
+    MedInc: float
+    HouseAge: float
+    AveBedrms: float
+    AveRooms: float
+    population: float
+    AveOccup: float
 
-    # Prevent any extra fields from being passed in 
+    # Prevent extra fields from being passed
     class Config:
         extra = "forbid"
 
-    # Ensures it falls within the valid range
-    @field_validator('longitude')
-    def check_longitude(cls, v):
+    # Validator for longitude
+    @validator('longitude')
+    def validate_longitude(cls, v):
         if not (-180 <= v <= 180):
-            raise ValueError('Invalid value for Longitude')
+            raise ValueError('Invalid longitude')
         return v
 
-    # Ensures it falls within the valid range
-    @field_validator('latitude')
-    def check_latitude(cls, v):
+    # Validator for latitude
+    @validator('latitude')
+    def validate_latitude(cls, v):
         if not (-90 <= v <= 90):
-            raise ValueError('Invalid value for Latitude')
+            raise ValueError('Invalid latitude')
         return v
 
-# The POST endpoint to predict the house price based on the input features
-@predict_app.post("/predict")
-def get_prediction(request: PredictionRequest):
-    # Collect the data from the request and format it for the model
+# Define the response model for predictions
+class PredictionResponse(BaseModel):
+    prediction: float
+
+# Define the /predict endpoint
+@predict_app.post("/predict", response_model=PredictionResponse)
+async def predict(request: PredictionRequest):
+    # Extract the input data and format it for the model
     data = [
         request.longitude,
         request.latitude,
@@ -51,22 +55,17 @@ def get_prediction(request: PredictionRequest):
         request.population,
         request.AveOccup
     ]
-    
-    # Use the model to make a prediction
-    prediction = model.predict([data])
 
-    # Return the prediction as part of the response
-    return {"prediction": float(prediction[0])}
+    try:
+        # Make the prediction using the pre-trained model
+        prediction = model.predict([data])[0]  # Single prediction
+    except Exception as e:
+        raise HTTPException(status_code=500, detail="Prediction failed")
 
-# The "hello" endpoint returns a greeting message
-@predict_app.get("/hello")
-def get_hello(name: str = None):
-    if not name:
-        # If no name is provided, raise a 400 error
-        raise HTTPException(status_code=400, detail="Name is required")
-    return {"message": f"Hello {name}!"}
+    # Return the prediction as a response
+    return PredictionResponse(prediction=prediction)
 
-# A health check endpoint tells us the service is running properly
+# A basic health check endpoint
 @predict_app.get("/health")
 def health_check():
     return {"status": "healthy"}
