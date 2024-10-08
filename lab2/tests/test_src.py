@@ -22,6 +22,53 @@ def test_missing_name():
     assert response.status_code == 400
     assert response.json() == {"detail": "Name is required"}
 
+# Test the /hello endpoint with an empty name
+def test_no_name():
+    response = client.get("/hello?name=")
+    assert response.status_code == 400
+    assert response.json() == {"detail": "Name is required"}
+
+# Test the root endpoint ("/") for 404 error
+def test_root_not_found():
+    response = client.get("/")
+    assert response.status_code == 404
+    assert response.json() == {"detail": "Not Found"}
+
+# Test access to the /docs endpoint
+def test_docs_access():
+    response = client.get("/docs")
+    assert response.status_code == 200
+
+# Test access to the OpenAPI JSON specification
+def test_openapi_access():
+    response = client.get("/openapi.json")
+    assert response.status_code == 200
+    assert "openapi" in response.json()  # Ensure the OpenAPI key is present
+
+# Test the /hello endpoint with a name containing special characters
+def test_special_characters():
+    response = client.get("/hello?name=John%20Doe")
+    assert response.status_code == 200
+    assert response.json() == {"message": "Hello John Doe!"}
+
+# Test that POST requests to the /hello endpoint return a 405 Method Not Allowed error
+def test_hello_post_not_allowed():
+    response = client.post("/hello")
+    assert response.status_code == 405
+
+# Test the /hello endpoint with unexpected query parameters
+def test_health_with_query_parameters():
+    response = client.get("/health?foo=bar")
+    assert response.status_code == 200
+    assert response.json() == {"status": "healthy"}
+
+# Test the /hello endpoint with a very long name
+def test_hello_long_name():
+    long_name = "John" * 100  # Create a very long name string
+    response = client.get(f"/hello?name={long_name}")
+    assert response.status_code == 200
+    assert response.json() == {"message": f"Hello {long_name}!"}
+
 # Test for valid predictions
 def test_predict_basic():
     response = client.post("/lab/predict", json={

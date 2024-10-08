@@ -1,5 +1,5 @@
 [tool.poetry]
-name = "lab2"
+name = "src"
 version = "0.1.0"
 description = "Lab 2: Data Models and Inference"
 authors = ["Jorge Sandoval <sandoval@berkeley.edu>"]
@@ -11,6 +11,7 @@ python = "~3.11"
 fastapi = {extras = ["standard"], version = "^0.112.2"}  
 joblib = "1.4.2"
 scikit-learn = "1.5.2"
+numpy = "^1.23.0"
 
 [tool.poetry.group.dev.dependencies]
 pytest = "^8.3.2"
