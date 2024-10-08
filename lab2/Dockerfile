@@ -11,12 +11,13 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     libffi-dev \
     && rm -rf /var/lib/apt/lists/*
 
-# Copy the dependency files and install only production dependencies
+# Copy only the requirements and necessary files for the build stage
 COPY requirements.txt ./
-RUN pip install --no-cache-dir -r requirements.txt
+COPY model_pipeline.pkl ./
+COPY src/ ./src/
 
-# Copy the source code
-COPY . .
+# Install the dependencies
+RUN pip install --no-cache-dir -r requirements.txt
 
 # Clean up pycache and other unnecessary files
 RUN find /app -name '__pycache__' -exec rm -rf {} + && find /app -name '*.pyc' -exec rm -rf {} +
@@ -31,8 +32,9 @@ COPY --from=builder /usr/local/lib/python3.11/site-packages /usr/local/lib/pytho
 COPY --from=builder /usr/local/bin/uvicorn /usr/local/bin/
 COPY --from=builder /usr/local/bin/fastapi /usr/local/bin/
 
-# Copy the application code
-COPY --from=builder /app /app
+# Copy the application code from the builder stage
+COPY --from=builder /app/model_pipeline.pkl /app/
+COPY --from=builder /app/src /app/src
 
 # Expose the port
 EXPOSE 8000
