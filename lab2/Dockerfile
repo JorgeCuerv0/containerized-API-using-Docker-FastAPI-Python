@@ -27,13 +27,12 @@ FROM python:3.11-slim
 WORKDIR /app
 
 # Copy only the installed packages from the builder stage
-COPY --from=builder /usr/local/lib/python3.11 /usr/local/lib/python3.11
+COPY --from=builder /usr/local/lib/python3.11/site-packages /usr/local/lib/python3.11/site-packages
+COPY --from=builder /usr/local/bin/uvicorn /usr/local/bin/
+COPY --from=builder /usr/local/bin/fastapi /usr/local/bin/
 
 # Copy the application code
 COPY --from=builder /app /app
-
-# Install uvicorn and FastAPI
-RUN pip install --no-cache-dir fastapi uvicorn
 
 # Expose the port
 EXPOSE 8000
@@ -42,4 +41,4 @@ EXPOSE 8000
 HEALTHCHECK --interval=30s --timeout=5s --start-period=30s --retries=3 CMD curl --fail http://localhost:8000/health || exit 1
 
 # Run the app using uvicorn
-CMD ["python3", "-m", "uvicorn", "src.main:app", "--host", "0.0.0.0", "--port", "8000"]
+CMD ["uvicorn", "src.main:app", "--host", "0.0.0.0", "--port", "8000"]
