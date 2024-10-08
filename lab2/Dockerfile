@@ -9,6 +9,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     curl \
     build-essential \
     libffi-dev \
+    ca-certificates \
     && rm -rf /var/lib/apt/lists/*
 
 # Install Poetry
@@ -26,25 +27,23 @@ RUN poetry install --no-root --only main
 # Copy the source code
 COPY . .
 
-# Final Stage: Run the application in a smaller image
-FROM python:3.11-slim
+RUN pip install --no-cache-dir uvicorn fastapi
 
+# Final Stage: Create a smaller image for running the application
+FROM python:3.11-slim AS final
+
+# Set the working directory in the final container
 WORKDIR /app
 
 # Copy only the installed packages from the builder stage
 COPY --from=base /usr/local/lib/python3.11 /usr/local/lib/python3.11
+COPY --from=base /root/.local/bin /root/.local/bin 
+
+# Install Uvicorn and FastAPI in the final image
+RUN pip install --no-cache-dir uvicorn fastapi joblib  # Ensure joblib is installed
 
 # Copy the application code
 COPY --from=base /app /app
-
-# Install necessary Python packages in the final stage
-RUN pip install --no-cache-dir uvicorn fastapi
-
-# Expose the port
-EXPOSE 8000
-
-# Add healthcheck command to monitor the API
-HEALTHCHECK CMD curl --fail http://localhost:8000/health || exit 1
 
 # Run the app using uvicorn
 CMD ["uvicorn", "src.main:app", "--host", "0.0.0.0", "--port", "8000"]
