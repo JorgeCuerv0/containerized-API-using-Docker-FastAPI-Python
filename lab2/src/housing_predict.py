@@ -15,10 +15,10 @@ class HousingInput(BaseModel):
     HouseAge: float
     AveRooms: float
     AveBedrms: float
-    population: float
+    Population: float
     AveOccup: float
-    latitude: float
-    longitude: float
+    Latitude: float
+    Longitude: float
 
     # Prevent extra fields in the input
     model_config = ConfigDict(extra="forbid")
