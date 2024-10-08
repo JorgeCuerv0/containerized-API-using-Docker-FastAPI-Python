@@ -18,7 +18,7 @@ ENV PATH="/root/.local/bin:$PATH"
 COPY pyproject.toml poetry.lock ./
 
 # Step 6: Install only production dependencies using Poetry
-RUN poetry install --only main --no-root
+RUN poetry config virtualenvs.create false && poetry install --only main --no-root
 
 # Step 7: Copy the app's source code
 COPY . /app
@@ -29,9 +29,8 @@ FROM python:3.11-slim
 # Step 9: Set the working directory in the final image
 WORKDIR /app
 
-# Step 10: Copy from the builder (dependencies and source code)
+# Step 10: Copy from the builder stage the installed dependencies and source code
 COPY --from=builder /app /app
-COPY --from=builder /root/.local/lib/python3.11/site-packages /usr/local/lib/python3.11/site-packages
 
 # Step 11: Expose the app port
 EXPOSE 8000
