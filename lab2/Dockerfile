@@ -21,13 +21,11 @@ ENV PATH="${PATH}:/root/.local/bin"
 # Copy the pyproject.toml and poetry.lock files
 COPY pyproject.toml poetry.lock ./
 
-# Install dependencies
-RUN poetry install --no-root --only main
+# Install dependencies using Poetry
+RUN poetry install --no-root
 
 # Copy the source code
 COPY . .
-
-RUN pip install --no-cache-dir uvicorn fastapi
 
 # Final Stage: Create a smaller image for running the application
 FROM python:3.11-slim AS final
@@ -35,15 +33,15 @@ FROM python:3.11-slim AS final
 # Set the working directory in the final container
 WORKDIR /app
 
-# Copy only the installed packages from the builder stage
+# Copy the installed packages from the builder stage
 COPY --from=base /usr/local/lib/python3.11 /usr/local/lib/python3.11
-COPY --from=base /root/.local/bin /root/.local/bin 
-
-# Install Uvicorn and FastAPI in the final image
-RUN pip install --no-cache-dir uvicorn fastapi joblib  # Ensure joblib is installed
+COPY --from=base /root/.local /root/.local
 
 # Copy the application code
 COPY --from=base /app /app
+
+# Install all required packages in the final image
+RUN pip install --no-cache-dir -e .  # This ensures that all dependencies from pyproject.toml are installed
 
 # Run the app using uvicorn
 CMD ["uvicorn", "src.main:app", "--host", "0.0.0.0", "--port", "8000"]
