@@ -59,6 +59,6 @@ def get_prediction(request: PredictionRequest):
     try:
         # Extract the first prediction from the returned array
         prediction = model.predict([data])[0]  # Ensure we access the first element
-        return {"status": "ok", "prediction": float(prediction)}  # Add "status" for consistency
+        return {"prediction": float(prediction)}  # Add "status" for consistency
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
