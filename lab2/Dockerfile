@@ -1,4 +1,4 @@
-# Use the official Python 3.11 slim image
+# Use the official Python 3.11 slim image as the base for building
 FROM python:3.11-slim AS builder
 
 # Set the working directory in the container
@@ -29,7 +29,7 @@ COPY --from=builder /usr/local/lib/python3.11 /usr/local/lib/python3.11
 # Copy the application code
 COPY --from=builder /app /app
 
-# Install both FastAPI and Uvicorn
+# Install FastAPI and Uvicorn
 RUN pip install --no-cache-dir fastapi uvicorn
 
 # Expose the port
@@ -38,5 +38,5 @@ EXPOSE 8000
 # Add the healthcheck
 HEALTHCHECK --interval=30s --timeout=5s --start-period=30s --retries=3 CMD curl --fail http://localhost:8000/health || exit 1
 
-# Run the app
-CMD ["uvicorn", "src.main:app", "--host", "0.0.0.0", "--port", "8000"]
+# Run the app using the absolute path to uvicorn
+CMD ["python3", "-m", "uvicorn", "src.main:app", "--host", "0.0.0.0", "--port", "8000"]
