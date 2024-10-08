@@ -25,13 +25,13 @@ def test_missing_name():
 # Test for valid predictions
 def test_predict_basic():
     response = client.post("/lab/predict", json={
-        "longitude": -122.1,
-        "latitude": 37.7,
+        "Longitude": -122.1,
+        "Latitude": 37.7,
         "MedInc": 5.0,
         "HouseAge": 25.0,
         "AveBedrms": 1.0,
         "AveRooms": 6.0,
-        "population": 300.0,
+        "Population": 300.0,
         "AveOccup": 2.5
     })
     assert response.status_code == 200
@@ -68,13 +68,13 @@ def test_predict_bad_type():
 # Test for string inputs that can be parsed to floats
 def test_predict_bad_type_only_in_format():
     response = client.post("/lab/predict", json={
-        "longitude": "-122.1",
-        "latitude": "37.7",
+        "Longitude": "-122.1",  # String, but parsable
+        "Latitude": "37.7",     # String, but parsable
         "MedInc": "5.0",
         "HouseAge": "25.0",
         "AveBedrms": "1.0",
         "AveRooms": "6.0",
-        "population": "300.0",
+        "Population": "300.0",
         "AveOccup": "2.5"
     })
     assert response.status_code == 200, "Expected 200 OK for parsable strings as numbers."
