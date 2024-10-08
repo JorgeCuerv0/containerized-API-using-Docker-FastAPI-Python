@@ -3,21 +3,20 @@ from src.main import app
 
 client = TestClient(app)
 
+# Test the /health endpoint to ensure it returns a 200 status and "healthy" message
 def test_health_check():
     response = client.get("/health")
     assert response.status_code == 200
     json_response = response.json()
-    
-    # Assert that the status is 'healthy'
     assert json_response["status"] == "healthy"
 
-# Test the /hello endpoint when a valid name is provided, checking for a successful response and correct message
+# Test the /hello endpoint when a valid name is provided
 def test_hello_with_name():
     response = client.get("/hello?name=John")
     assert response.status_code == 200
     assert response.json() == {"message": "Hello John!"}
-    
-# Test the /hello endpoint when the name parameter is missing, expecting a 400 error and "Name is required" message
+
+# Test the /hello endpoint when the name parameter is missing
 def test_missing_name():
     response = client.get("/hello")
     assert response.status_code == 400

@@ -1,6 +1,4 @@
-from fastapi import FastAPI, HTTPException  # Import HTTPException
-from datetime import datetime
-
+from fastapi import FastAPI, HTTPException
 from src.housing_predict import predict_app, router
 
 app = FastAPI()
@@ -14,7 +12,7 @@ app.include_router(router)
 # Health check endpoint
 @app.get("/health")
 async def health_check():
-    return {"status": "healthy", "time": datetime.now().isoformat()}
+    return {"status": "healthy"}
 
 # Hello endpoint (for testing)
 @app.get("/hello")
