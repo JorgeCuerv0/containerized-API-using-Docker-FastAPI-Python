@@ -40,5 +40,8 @@ COPY --from=base /app /app
 # Expose the port
 EXPOSE 8000
 
+# Add healthcheck command to monitor the API
+HEALTHCHECK CMD curl --fail http://localhost:8000/health || exit 1
+
 # Run the app using uvicorn
 CMD ["uvicorn", "src.main:app", "--host", "0.0.0.0", "--port", "8000"]
