@@ -29,14 +29,17 @@ FROM python:3.11-slim
 # Step 9: Set the working directory in the final image
 WORKDIR /app
 
-# Step 10: Copy from the builder stage the installed dependencies and source code
+# Step 10: Install production dependencies in the final stage
+RUN pip install --no-cache-dir uvicorn fastapi joblib scikit-learn
+
+# Step 11: Copy from the builder stage the installed dependencies and source code
 COPY --from=builder /app /app
 
-# Step 11: Expose the app port
+# Step 12: Expose the app port
 EXPOSE 8000
 
-# Step 12: Health check to ensure the container is running properly
+# Step 13: Health check to ensure the container is running properly
 HEALTHCHECK --interval=60s --timeout=10s --start-period=30s --retries=5 CMD curl --fail http://localhost:8000/health || exit 1
 
-# Step 13: Command to run the application
+# Step 14: Command to run the application
 CMD ["uvicorn", "src.main:app", "--host", "0.0.0.0", "--port", "8000"]
