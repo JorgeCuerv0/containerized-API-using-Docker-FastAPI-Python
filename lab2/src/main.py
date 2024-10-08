@@ -1,4 +1,5 @@
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException  # Import HTTPException
+
 from src.housing_predict import predict_app, router
 
 app = FastAPI()
