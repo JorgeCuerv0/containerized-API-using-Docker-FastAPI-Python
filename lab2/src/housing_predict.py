@@ -1,64 +1,45 @@
-from fastapi import APIRouter, HTTPException, FastAPI
-from pydantic import BaseModel, field_validator
+from fastapi import APIRouter, HTTPException
+from pydantic import BaseModel
+import numpy as np
 import joblib
-from datetime import datetime
 
-# Router for non-prediction related routes
 router = APIRouter()
 
-# Create a separate FastAPI instance for prediction-related routes
-predict_app = FastAPI()
-
-# Load your trained model
+# Load the model
 model = joblib.load("model_pipeline.pkl")
 
-class PredictionRequest(BaseModel):
-    longitude: float
-    latitude: float
+class HousingInput(BaseModel):
     MedInc: float
     HouseAge: float
-    AveBedrms: float
     AveRooms: float
+    AveBedrms: float
     population: float
     AveOccup: float
+    latitude: float
+    longitude: float
 
-    model_config = {"extra": "forbid"}  # Prevent extra fields in the input
+    class Config:
+        extra = "forbid"
 
-    @field_validator('longitude')
-    @classmethod
-    def check_longitude(cls, v):
-        if not (-180 <= v <= 180):
-            raise ValueError('Invalid value for Longitude')
-        return v
-
-    @field_validator('latitude')
-    @classmethod
-    def check_latitude(cls, v):
-        if not (-90 <= v <= 90):
-            raise ValueError('Invalid value for Latitude')
-        return v
-    
-# Define a health check route in the APIRouter
-@router.get("/health")
-def health_check():
-    return {"status": "ok", "time": datetime.now().isoformat()}
-
-# Define the predict route in the predict_app
-@predict_app.post("/predict")
-def get_prediction(request: PredictionRequest):
-    data = [
-        request.longitude,
-        request.latitude,
-        request.MedInc,
-        request.HouseAge,
-        request.AveBedrms,
-        request.AveRooms,
-        request.population,
-        request.AveOccup
-    ]
+@router.post("/predict")
+async def predict(input_data: HousingInput):
     try:
-        # Extract the first prediction from the returned array
-        prediction = model.predict([data])[0]  # Ensure we access the first element
-        return {"prediction": float(prediction)}  # Add "status" for consistency
+        # Create the input feature array in the correct order
+        input_array = np.array([[
+            input_data.MedInc,
+            input_data.HouseAge,
+            input_data.AveRooms,
+            input_data.AveBedrms,
+            input_data.population,
+            input_data.AveOccup,
+            input_data.latitude,
+            input_data.longitude
+        ]])
+
+        # Perform the prediction
+        prediction = model.predict(input_array)[0]
+        
+        return {"prediction": prediction}
+    
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
