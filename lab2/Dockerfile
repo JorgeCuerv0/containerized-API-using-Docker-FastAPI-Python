@@ -15,13 +15,15 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 COPY requirements.txt ./
 RUN pip install --no-cache-dir -r requirements.txt
 
-# Clean up unnecessary files to reduce image size
-RUN rm -rf /root/.cache
-
-# Copy the source code
+# Copy the source code (excluding unnecessary files via .dockerignore)
 COPY . .
 
-# Final Stage: Run the application in a smaller image
+# Remove cached files and unnecessary pycache files to reduce image size
+RUN find /app -name '__pycache__' -exec rm -rf {} + \
+    && find /app -name '*.pyc' -exec rm -rf {} + \
+    && rm -rf /root/.cache
+
+# Final Stage: Create the actual running image from Python 3.11-slim
 FROM python:3.11-slim
 
 WORKDIR /app
@@ -35,14 +37,11 @@ COPY --from=builder /app /app
 # Install FastAPI and Uvicorn
 RUN pip install --no-cache-dir fastapi uvicorn
 
-# Clean up the cache to reduce image size
-RUN rm -rf /root/.cache
-
-# Expose the port
+# Expose the port for the API
 EXPOSE 8000
 
-# Add the healthcheck
+# Add the healthcheck for the API
 HEALTHCHECK --interval=30s --timeout=5s --start-period=30s --retries=3 CMD curl --fail http://localhost:8000/health || exit 1
 
-# Run the app using the absolute path to uvicorn
+# Run the FastAPI application using uvicorn
 CMD ["python3", "-m", "uvicorn", "src.main:app", "--host", "0.0.0.0", "--port", "8000"]
