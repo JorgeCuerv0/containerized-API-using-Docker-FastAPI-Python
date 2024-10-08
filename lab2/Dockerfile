@@ -1,8 +1,7 @@
-# Use a multi-stage build to reduce final image size
-
-# Builder stage
+# Use the official Python 3.11 slim image
 FROM python:3.11-slim AS builder
 
+# Set the working directory in the container
 WORKDIR /app
 
 # Install necessary system dependencies
@@ -12,31 +11,32 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     libffi-dev \
     && rm -rf /var/lib/apt/lists/*
 
-# Copy the dependency files
+# Copy the dependency files and install only production dependencies
 COPY requirements.txt ./
-
-# Install dependencies with pip
 RUN pip install --no-cache-dir -r requirements.txt
 
 # Copy the source code
 COPY . .
 
-# Final stage - Smaller runtime image
+# Final Stage: Run the application in a smaller image
 FROM python:3.11-slim
 
 WORKDIR /app
 
-# Copy necessary files from the builder stage
+# Copy only the installed packages from the builder stage
+COPY --from=builder /usr/local/lib/python3.11 /usr/local/lib/python3.11
+
+# Copy the application code
 COPY --from=builder /app /app
 
-# Install Uvicorn separately
-RUN pip install --no-cache-dir uvicorn
+# Install both FastAPI and Uvicorn
+RUN pip install --no-cache-dir fastapi uvicorn
 
 # Expose the port
 EXPOSE 8000
 
-# Add a healthcheck
+# Add the healthcheck
 HEALTHCHECK --interval=30s --timeout=5s --start-period=30s --retries=3 CMD curl --fail http://localhost:8000/health || exit 1
 
-# Command to run the application
+# Run the app
 CMD ["uvicorn", "src.main:app", "--host", "0.0.0.0", "--port", "8000"]
