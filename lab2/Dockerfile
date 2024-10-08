@@ -37,6 +37,9 @@ COPY --from=base /usr/local/lib/python3.11 /usr/local/lib/python3.11
 # Copy the application code
 COPY --from=base /app /app
 
+# Install necessary Python packages in the final stage
+RUN pip install --no-cache-dir uvicorn fastapi
+
 # Expose the port
 EXPOSE 8000
 
