@@ -1,15 +1,10 @@
 # Use the official Python 3.11 slim image as the base for building
 FROM python:3.11-slim AS base
 
-# Set the working directory in the container to /app
+# Set the working directory in the container
 WORKDIR /app
 
-# Update package lists and install necessary system dependencies
-# - curl: for downloading Poetry
-# - build-essential: for compiling packages
-# - libffi-dev: required for certain Python packages
-# - ca-certificates: to ensure SSL certificates are trusted
-# After installation, clean up the package lists to reduce image size
+# Install necessary system dependencies
 RUN apt-get update && apt-get install -y --no-install-recommends \
     curl \
     build-essential \
@@ -17,40 +12,39 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     ca-certificates \
     && rm -rf /var/lib/apt/lists/*
 
-# Download and install Poetry, a dependency management tool for Python
+# Install Poetry
 RUN curl -sSL https://install.python-poetry.org | python3 -
 
-# Add Poetry to the PATH so we can use it in the next steps
+# Make sure Poetry is in PATH
 ENV PATH="${PATH}:/root/.local/bin"
 
-# Copy the dependency configuration files to the container
+# Copy the pyproject.toml and poetry.lock files
 COPY pyproject.toml poetry.lock ./
 
-# Install the project dependencies using Poetry, excluding the root package
+# Install dependencies
 RUN poetry install --no-root
 
-# Copy the entire source code into the container
+# Copy the source code
 COPY . .
 
-# Start a new stage for the final image
+# Final Stage: Create a smaller image for running the application
 FROM python:3.11-slim AS final
 
-# Set the working directory in the final container to /app
+# Set the working directory in the final container
 WORKDIR /app
 
-# Copy only the installed packages from the base stage to the final image
+# Copy only the installed packages from the builder stage
 COPY --from=base /usr/local/lib/python3.11 /usr/local/lib/python3.11
 COPY --from=base /root/.local /root/.local
 
-# Install Uvicorn (for serving the app), FastAPI (web framework), joblib (for loading models),
-# and scikit-learn (for machine learning) in the final image
+# Install Uvicorn, FastAPI, and other necessary packages in the final image
 RUN pip install --no-cache-dir uvicorn fastapi joblib scikit-learn
 
 # Copy the application code from the base stage to the final image
 COPY --from=base /app /app
 
-# Healthcheck to ensure the application is running by pinging the root endpoint
+# Healthcheck to ensure the application is running
 HEALTHCHECK CMD curl --fail http://localhost:8000/ || exit 1
 
-# Run the app using Python with Uvicorn as the ASGI server
+# Run the app using python with uvicorn
 CMD ["python", "-m", "uvicorn", "src.main:app", "--host", "0.0.0.0", "--port", "8000"]

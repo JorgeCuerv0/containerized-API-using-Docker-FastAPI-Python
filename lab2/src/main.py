@@ -23,4 +23,4 @@ async def get_name(name: str = None):
 
 @app.get("/")
 async def root():
-    return {"message": "Welcome to the API!"}
+    raise HTTPException(status_code=404, detail="Not Found")
