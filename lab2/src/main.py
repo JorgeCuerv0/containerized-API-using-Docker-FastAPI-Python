@@ -26,3 +26,6 @@ async def hello_no_name(name: str = None):
 def health_check():
     return {"status": "healthy"}
 
+@app.get("/")
+async def root():
+    return JSONResponse(status_code = 404, detail = "Not Found")
