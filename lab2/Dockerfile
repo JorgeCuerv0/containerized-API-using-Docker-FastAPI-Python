@@ -1,49 +1,23 @@
-# Base Arguments to leverage across build stages
-ARG APP_DIR=/app
+# Use the Python 3.11 slim image
+FROM python:3.11-slim
 
-#############
-# Build (Prepare Environment) image
-#############
-FROM python:3.11-slim AS build
-ARG APP_DIR
+# Set the working directory
+WORKDIR /app
 
-# Install necessary system dependencies for building packages
-RUN apt-get update && apt-get install -y --no-install-recommends \
-    curl \
-    build-essential \
-    libffi-dev \
-    && rm -rf /var/lib/apt/lists/*
-
-# Install Poetry directly into the virtual environment
-RUN curl -sSL https://install.python-poetry.org | python3 -
-
-# Change the working directory for where our app will live
-WORKDIR ${APP_DIR}
-
-# Copy the Poetry configuration files
+# Copy the poetry files
 COPY pyproject.toml poetry.lock ./
 
-# Install dependencies using Poetry
-RUN poetry install --no-root --only main
+# Install Poetry
+RUN pip install poetry
 
-#############
-# Deployment image
-#############
-FROM python:3.11-slim AS run
-ARG APP_DIR
+# Create a virtual environment
+RUN poetry config virtualenvs.create false
 
-# Copy the virtual environment from the build stage
-COPY --from=build ${APP_DIR}/venv ${APP_DIR}/venv/
-ENV PATH="${APP_DIR}/venv/bin:$PATH"
+# Install dependencies
+RUN poetry install --no-root
 
-# Set the working directory for the application
-WORKDIR ${APP_DIR}
+# Copy the rest of the application code
+COPY . .
 
-# Copy the application code into the image
-COPY . ./
-
-# Healthcheck to ensure the application is running
-HEALTHCHECK CMD python -c "import requests; requests.get('http://localhost:8000/health', timeout=2)"
-
-# Run the application using python with Uvicorn
+# Command to run the application
 CMD ["uvicorn", "src.main:app", "--host", "0.0.0.0", "--port", "8000"]
