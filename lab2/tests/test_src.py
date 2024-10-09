@@ -126,3 +126,6 @@ def test_predict_bad_type_only_in_format():
     })
     assert response.status_code == 200, "Expected 200 OK for parsable strings as numbers."
     assert "prediction" in response.json()
+    
+
+
