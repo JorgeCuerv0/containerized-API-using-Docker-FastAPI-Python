@@ -9,18 +9,13 @@ app.mount("/lab", predict_app)
 # Include other routes like /health using APIRouter
 app.include_router(router)
 
-# Health check endpoint
+@app.get("/hello")
+# takes a query parameter name
+async def hello(name: str):
+    return {"message": f"Hello {name}"}
+
+
 @app.get("/health")
-async def health_check():
+async def health():
     return {"status": "healthy"}
 
-# Hello endpoint (for testing)
-@app.get("/hello")
-async def get_name(name: str = None):
-    if not name:  # This will check for both None and empty string
-        raise HTTPException(status_code=400, detail="Name is required")
-    return {'message': f"Hello {name}!"}
-
-@app.get("/")
-async def root():
-    raise HTTPException(status_code=404, detail="Not Found")

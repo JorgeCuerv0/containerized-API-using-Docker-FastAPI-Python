@@ -1,52 +1,57 @@
-# Use the official Python 3.11 slim image as the base for building
-FROM python:3.11-slim AS base
+# Base Arguments to leverage across build stages
+ARG APP_DIR=/app
 
-# Set the working directory in the container
-WORKDIR /app
+#############
+# Build (Prepare Environment) image
+#############
+FROM python:3.11-slim AS build
+ARG APP_DIR
 
-# Update the package list to ensure we have the latest information on available packages
-RUN apt-get update && \  
-    # Install necessary system dependencies without unnecessary packages
-    apt-get install -y --no-install-recommends \
-    curl \                
-    build-essential \      
-    libffi-dev \           
-    ca-certificates \      
-    && rm -rf /var/lib/apt/lists/*  
+# Install necessary system dependencies for building packages
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    curl \
+    build-essential \
+    libffi-dev \
+    gfortran \
+    ca-certificates \
+    && rm -rf /var/lib/apt/lists/*
 
-# Install Poetry
-RUN curl -sSL https://install.python-poetry.org | python3 -  # Download and install Poetry
+# Install Poetry directly into the virtual environment
+RUN curl -sSL https://install.python-poetry.org | python3 -
 
-# Make sure Poetry is in PATH
-ENV PATH="${PATH}:/root/.local/bin"
+# Change the working directory for where our app will live
+WORKDIR ${APP_DIR}
 
-# Copy the pyproject.toml and poetry.lock files to the working directory
+# Copy the Poetry configuration files
 COPY pyproject.toml poetry.lock ./
 
-# Install project dependencies using Poetry
-RUN poetry install --no-root  # Install dependencies without installing the package itself
+# Create a virtual environment for the application
+RUN python -m venv --copies ${APP_DIR}/venv
 
-# Copy the source code into the container
-COPY . .
+# Activate the virtual environment and install Poetry in it
+RUN . ${APP_DIR}/venv/bin/activate && pip install --upgrade pip && pip install poetry
 
-# Final Stage: Create a smaller image for running the application
-FROM python:3.11-slim AS final
+# Install dependencies using Poetry in the virtual environment
+RUN . ${APP_DIR}/venv/bin/activate && poetry install --only main
 
-# Set the working directory in the final container
-WORKDIR /app
+#############
+# Deployment image
+#############
+FROM python:3.11-slim AS run
+ARG APP_DIR
 
-# Copy only the installed packages from the builder stage to the final image
-COPY --from=base /usr/local/lib/python3.11 /usr/local/lib/python3.11
-COPY --from=base /root/.local /root/.local
+# Copy the virtual environment from the build stage
+COPY --from=build ${APP_DIR}/venv ${APP_DIR}/venv/
+ENV PATH="${APP_DIR}/venv/bin:$PATH"
 
-# Install Uvicorn, FastAPI, Joblib, and Scikit-Learn in the final image
-RUN pip install --no-cache-dir uvicorn fastapi joblib scikit-learn  # Ensure all necessary packages are installed
+# Set the working directory for the application
+WORKDIR ${APP_DIR}
 
-# Copy the application code from the base stage to the final image
-COPY --from=base /app /app
+# Copy the application code into the image
+COPY . ./
 
 # Healthcheck to ensure the application is running
-HEALTHCHECK CMD curl --fail http://localhost:8000/ || exit 1  # Check if the API is responding
+HEALTHCHECK --start-period=30s CMD python -c "import requests; requests.get('http://localhost:8000/health', timeout=2)"
 
-# Run the app using Python with Uvicorn
+# Run the application using python with Uvicorn
 CMD ["python", "-m", "uvicorn", "src.main:app", "--host", "0.0.0.0", "--port", "8000"]
