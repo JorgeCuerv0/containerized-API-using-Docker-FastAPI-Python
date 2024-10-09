@@ -1,5 +1,6 @@
-from fastapi import FastAPI, HTTPException
-from src.housing_predict import predict_app, router
+from fastapi import FastAPI, HTTPException, 
+from src.housing_predict import predict_app
+from json import JSONResponse
 
 app = FastAPI()
 
@@ -7,7 +8,7 @@ app = FastAPI()
 app.mount("/lab", predict_app)
 
 # Include other routes like /health using APIRouter
-app.include_router(router)
+app.include_router(predict_app)
 
 @app.get("/hello/{name}")
 async def hello(name: str):
