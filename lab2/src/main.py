@@ -22,7 +22,7 @@ async def hello_no_name(name: str = None):
     return {"message": f"Hello {name}!"}  # Ensure correct greeting format
 
 
-@app.get("/health")
+@app.get("/lab/health")
 def health_check():
     return {"status": "healthy"}
 

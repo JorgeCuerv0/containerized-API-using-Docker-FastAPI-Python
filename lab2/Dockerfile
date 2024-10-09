@@ -1,45 +1,43 @@
+# Stage 1 - Build stage
 FROM python:3.11-slim AS builder
+
 WORKDIR /app
 
-# Update package lists and install necessary packages
-RUN apt-get update \
-    && apt-get install -y \
-        curl \
-        build-essential \
-        libffi-dev \
+# Install required build dependencies
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    build-essential \
+    libffi-dev \
+    curl \
+    && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
 
-# Install Poetry
+# Install poetry
 RUN curl -sSL https://install.python-poetry.org | python3 -
-ENV PATH=/root/.local/bin:${PATH}
 
-# Create a virtual environment
-RUN python -m venv ./venv
+# Add poetry to the PATH
+ENV PATH="/root/.local/bin:$PATH"
 
-# Copy the Poetry lock file and the pyproject.toml
+# Copy poetry files to install dependencies
 COPY poetry.lock pyproject.toml ./
 
-# Install the main dependencies directly in the virtual environment
-RUN . ./venv/bin/activate \
-    && poetry install --only main \
-    && pip cache purge
+# Create virtual environment and install dependencies
+RUN python -m venv venv \
+    && . /app/venv/bin/activate \
+    && poetry install --only main
 
-# Second stage: Running the application
+# Stage 2 - Final image
 FROM python:3.11-slim AS runner
+
 WORKDIR /app
 
 # Copy the virtual environment from the builder stage
 COPY --from=builder /app/venv /app/venv
 
-# Set the PATH to include the virtual environment's bin directory
-ENV PATH=/app/venv/bin:${PATH}
+# Set the PATH to use the venv
+ENV PATH="/app/venv/bin:$PATH"
 
-# Copy the rest of the application code
+# Copy your source code
 COPY . .
 
-# Healthcheck command to ensure the API is up
-HEALTHCHECK --interval=5m --timeout=3s \
-    CMD curl -f http://localhost/lab/health || exit 1
-
-# Command to run the application
+# Define command to run the app
 CMD ["uvicorn", "src.main:app", "--host", "0.0.0.0", "--port", "8000"]
