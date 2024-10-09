@@ -23,6 +23,6 @@ async def hello_no_name(name: str = None):
 
 
 @app.get("/health")
-async def health():
+def health_check():
     return {"status": "healthy"}
 

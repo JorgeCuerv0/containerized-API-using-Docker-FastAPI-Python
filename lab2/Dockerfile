@@ -1,9 +1,12 @@
+# Use the slim version of Python 3.11 for the builder stage
 FROM python:3.11-slim AS builder
+
+# Set the working directory
 WORKDIR /app
 
 # Update package lists and install necessary packages
 RUN apt-get update \
-    && apt-get install -y \
+    && apt-get install -y --no-install-recommends \
         curl \
         build-essential \
         libffi-dev \
@@ -20,9 +23,9 @@ RUN python -m venv ./venv
 COPY poetry.lock pyproject.toml ./
 
 # Install the main dependencies directly in the virtual environment
-RUN . ./venv/bin/activate \
-    && poetry install --only main \
-    && pip cache purge
+RUN ./venv/bin/python -m pip install --no-cache-dir poetry \
+    && ./venv/bin/poetry install --only main \
+    && ./venv/bin/pip cache purge
 
 # Second stage: Running the application
 FROM python:3.11-slim AS runner
@@ -39,7 +42,7 @@ COPY . .
 
 # Healthcheck command to ensure the API is up
 HEALTHCHECK --interval=5m --timeout=3s \
-    CMD curl -f http://localhost/lab/health || exit 1
+    CMD curl -f http://localhost:8000/health || exit 1
 
 # Command to run the application
 CMD ["uvicorn", "src.main:app", "--host", "0.0.0.0", "--port", "8000"]
