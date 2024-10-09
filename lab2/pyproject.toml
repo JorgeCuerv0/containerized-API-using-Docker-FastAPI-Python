@@ -10,7 +10,7 @@ packages = [{ include = "src" }]
 python = "~3.11"
 fastapi = { version = "^0.112.2", extras = ["standard"] }
 joblib = "1.4.2"
-scikit-learn = "^1.0.0"
+scikit-learn = "^1.5.2"
 numpy = "^1.23.0"  
 
 [tool.poetry.group.dev.dependencies]
