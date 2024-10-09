@@ -14,7 +14,7 @@ RUN apt-get update \
 
 # Install Poetry
 RUN curl -sSL https://install.python-poetry.org | python3 -
-ENV PATH=/root/.local/bin:${PATH}
+ENV PATH="/root/.local/bin:${PATH}"
 
 # Create a virtual environment
 RUN python -m venv ./venv
@@ -22,9 +22,10 @@ RUN python -m venv ./venv
 # Copy the Poetry lock file and the pyproject.toml
 COPY poetry.lock pyproject.toml ./
 
-# Install the main dependencies directly in the virtual environment
+# Install the main dependencies (including numpy and scikit-learn) directly in the virtual environment
 RUN ./venv/bin/python -m pip install --no-cache-dir poetry \
     && ./venv/bin/poetry install --only main \
+    && ./venv/bin/pip install --no-cache-dir uvicorn fastapi joblib numpy scikit-learn \
     && ./venv/bin/pip cache purge
 
 # Second stage: Running the application
@@ -35,7 +36,7 @@ WORKDIR /app
 COPY --from=builder /app/venv /app/venv
 
 # Set the PATH to include the virtual environment's bin directory
-ENV PATH=/app/venv/bin:${PATH}
+ENV PATH="/app/venv/bin:${PATH}"
 
 # Copy the rest of the application code
 COPY . .
@@ -45,4 +46,4 @@ HEALTHCHECK --interval=5m --timeout=3s \
     CMD curl -f http://localhost:8000/health || exit 1
 
 # Command to run the application
-CMD ["uvicorn", "src.main:app", "--host", "0.0.0.0", "--port", "8000"]
+CMD ["/app/venv/bin/uvicorn", "src.main:app", "--host", "0.0.0.0", "--port", "8000"]
