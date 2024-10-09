@@ -20,3 +20,7 @@ async def get_name(name: str = None):
     if not name:  # This will check for both None and empty string
         raise HTTPException(status_code=400, detail="Name is required")
     return {'message': f"Hello {name}!"}
+
+@app.get("/")
+async def root():
+    return {"message": "Welcome to the API!"}
