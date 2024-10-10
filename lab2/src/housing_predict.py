@@ -1,7 +1,5 @@
-# src/housing_predict.py
-
 from fastapi import APIRouter, Query, HTTPException
-from pydantic import BaseModel, Field, field_validator, ConfigDict
+from pydantic import BaseModel, Field, validator
 import numpy as np
 import joblib
 from datetime import datetime
@@ -21,22 +19,22 @@ class HousingInput(BaseModel):
     Latitude: float = Field(..., description="Latitude must be between -90 and 90")
     Longitude: float = Field(..., description="Longitude must be between -180 and 180")
 
-    model_config = ConfigDict(extra="forbid")  # Disallow extra fields
+    class Config:
+        extra = "forbid"  # Disallow extra fields
 
-    # Validators to ensure non-negative values
-    @field_validator('MedInc', 'HouseAge', 'AveRooms', 'AveBedrms', 'Population', 'AveOccup', mode='before')
+    @validator('MedInc', 'HouseAge', 'AveRooms', 'AveBedrms', 'Population', 'AveOccup')
     def non_negative(cls, value, field):
         if value < 0:
             raise ValueError(f"Invalid value for {field.name}")
         return value
 
-    @field_validator('Latitude')
+    @validator('Latitude')
     def validate_latitude(cls, value):
         if not (-90 <= value <= 90):
             raise ValueError("Invalid value for Latitude")
         return value
 
-    @field_validator('Longitude')
+    @validator('Longitude')
     def validate_longitude(cls, value):
         if not (-180 <= value <= 180):
             raise ValueError("Invalid value for Longitude")

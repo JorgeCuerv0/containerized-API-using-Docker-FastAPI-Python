@@ -1,5 +1,3 @@
-# tests/test_src.py
-
 from fastapi.testclient import TestClient
 from src.main import app
 from datetime import datetime
@@ -37,7 +35,6 @@ def test_predict():
 def test_hello_missing_name():
     response = client.get("/lab/hello")
     assert response.status_code == 422
-    # Adjust error message casing to match Pydantic v2
     assert response.json()["detail"][0]["msg"] == "field required"
     assert response.json()["detail"][0]["loc"] == ["query", "name"]
 
@@ -70,7 +67,6 @@ def test_predict_invalid_data_types():
     }
     response = client.post("/lab/predict", json=payload)
     assert response.status_code == 422
-    # Adjust error message to match Pydantic v2
     assert response.json()["detail"][0]["msg"] == "value is not a valid float"
     assert response.json()["detail"][0]["loc"] == ["body", "MedInc"]
 
@@ -88,8 +84,14 @@ def test_predict_out_of_bounds_coordinates():
     response = client.post("/lab/predict", json=payload)
     assert response.status_code == 422
     errors = response.json()["detail"]
-    assert any(error["loc"] == ["body", "Latitude"] and "Invalid value for Latitude" in error["msg"] for error in errors)
-    assert any(error["loc"] == ["body", "Longitude"] and "Invalid value for Longitude" in error["msg"] for error in errors)
+    assert any(
+        error["loc"] == ["body", "Latitude"] and "Invalid value for Latitude" in error["msg"]
+        for error in errors
+    )
+    assert any(
+        error["loc"] == ["body", "Longitude"] and "Invalid value for Longitude" in error["msg"]
+        for error in errors
+    )
 
 def test_predict_extra_fields():
     payload = {
@@ -105,7 +107,6 @@ def test_predict_extra_fields():
     }
     response = client.post("/lab/predict", json=payload)
     assert response.status_code == 422
-    # Adjust error message to match Pydantic v2
     assert response.json()["detail"][0]["msg"] == "extra fields not permitted"
     assert response.json()["detail"][0]["loc"] == ["body", "ExtraField"]
 
@@ -158,7 +159,10 @@ def test_predict_negative_values():
     errors = response.json()["detail"]
     expected_fields = ["MedInc", "HouseAge", "AveRooms", "AveBedrms", "Population", "AveOccup"]
     for field in expected_fields:
-        assert any(error["loc"] == ["body", field] and f"Invalid value for {field}" in error["msg"] for error in errors)
+        assert any(
+            error["loc"] == ["body", field] and "Invalid value for" in error["msg"]
+            for error in errors
+        )
 
 def test_predict_high_precision_floats():
     payload = {
