@@ -19,22 +19,23 @@ class HousingInput(BaseModel):
     Latitude: float = Field(..., description="Latitude must be between -90 and 90")
     Longitude: float = Field(..., description="Longitude must be between -180 and 180")
 
+    # Pydantic V2 validators
     @field_validator('MedInc', 'HouseAge', 'AveRooms', 'AveBedrms', 'Population', 'AveOccup')
-    def check_positive(cls, value):
+    def check_positive(cls, value, info):
         if value <= 0:
-            raise ValueError('Invalid value, must be positive')
+            raise ValueError(f'Invalid value for {info.field_name}, must be greater than zero')
         return value
 
     @field_validator('Latitude')
     def check_latitude(cls, value):
         if not (-90 <= value <= 90):
-            raise ValueError('Invalid value for Latitude, must be between -90 and 90')
+            raise ValueError('Invalid value for Latitude')
         return value
 
     @field_validator('Longitude')
     def check_longitude(cls, value):
         if not (-180 <= value <= 180):
-            raise ValueError('Invalid value for Longitude, must be between -180 and 180')
+            raise ValueError('Invalid value for Longitude')
         return value
 
     model_config = ConfigDict(extra='forbid')

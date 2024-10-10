@@ -30,12 +30,10 @@ def test_predict():
     assert "prediction" in response.json()
     assert isinstance(response.json()["prediction"], float)
 
-# Additional Test Cases
-
 def test_hello_missing_name():
     response = client.get("/lab/hello")
     assert response.status_code == 422
-    assert response.json()["detail"][0]["msg"] == "field required"
+    assert response.json()["detail"][0]["msg"] == "Field required"
     assert response.json()["detail"][0]["loc"] == ["query", "name"]
 
 def test_predict_missing_fields():
@@ -51,7 +49,7 @@ def test_predict_missing_fields():
     }
     response = client.post("/lab/predict", json=payload)
     assert response.status_code == 422
-    assert response.json()["detail"][0]["msg"] == "field required"
+    assert response.json()["detail"][0]["msg"] == "Field required"
     assert response.json()["detail"][0]["loc"] == ["body", "HouseAge"]
 
 def test_predict_invalid_data_types():
@@ -67,7 +65,7 @@ def test_predict_invalid_data_types():
     }
     response = client.post("/lab/predict", json=payload)
     assert response.status_code == 422
-    assert response.json()["detail"][0]["msg"] == "value is not a valid float"
+    assert "Input should be a valid number" in response.json()["detail"][0]["msg"]
     assert response.json()["detail"][0]["loc"] == ["body", "MedInc"]
 
 def test_predict_out_of_bounds_coordinates():
@@ -107,7 +105,7 @@ def test_predict_extra_fields():
     }
     response = client.post("/lab/predict", json=payload)
     assert response.status_code == 422
-    assert response.json()["detail"][0]["msg"] == "extra fields not permitted"
+    assert response.json()["detail"][0]["msg"] == "Extra inputs are not permitted"
     assert response.json()["detail"][0]["loc"] == ["body", "ExtraField"]
 
 def test_undefined_route():
@@ -124,8 +122,6 @@ def test_health_returns_valid_timestamp():
         datetime.fromisoformat(time_str)
     except ValueError:
         assert False, "Time is not a valid ISO8601 timestamp"
-
-# Additional Relevant Tests
 
 def test_predict_boundary_coordinates():
     payload = {
@@ -160,7 +156,7 @@ def test_predict_negative_values():
     expected_fields = ["MedInc", "HouseAge", "AveRooms", "AveBedrms", "Population", "AveOccup"]
     for field in expected_fields:
         assert any(
-            error["loc"] == ["body", field] and "Invalid value for" in error["msg"]
+            error["loc"] == ["body", field] and f"Invalid value for {field}, must be greater than zero" in error["msg"]
             for error in errors
         )
 
